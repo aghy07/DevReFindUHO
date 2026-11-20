@@ -70,6 +70,20 @@ class User
     // =================================================================
     public function simpan(): bool
     {
+        $this->nama_lengkap = trim($this->nama_lengkap);
+        $this->nim = $this->nim === null ? null : trim($this->nim);
+        $this->email = strtolower(trim($this->email));
+        $this->password = trim($this->password);
+
+        if (
+            $this->nama_lengkap === ''
+            || $this->email === ''
+            || $this->password === ''
+            || !in_array($this->role, ['mahasiswa', 'admin'], true)
+        ) {
+            return false;
+        }
+
         $sql = "INSERT INTO users (nama_lengkap, nim, email, password, role)
                 VALUES (:nama_lengkap, :nim, :email, :password, :role)";
 
@@ -98,6 +112,10 @@ class User
     // =================================================================
     public function cariByIdentitas(string $identitas): ?self
     {
+        $identitas = trim($identitas);
+        if ($identitas === '') {
+            return null;
+        }
         $sql = "SELECT * FROM users WHERE nim = :identitas OR email = :identitas2 LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([

@@ -34,7 +34,7 @@ class AuthController
         // Ambil & trim input
         $nama_lengkap     = trim($data['nama_lengkap'] ?? '');
         $nim              = trim($data['nim'] ?? '');
-        $email            = trim($data['email'] ?? '');
+        $email            = strtolower(trim($data['email'] ?? ''));
         $password         = $data['password'] ?? '';
         $konfirmasi       = $data['konfirmasi_password'] ?? '';
 
@@ -91,7 +91,12 @@ class AuthController
         $this->userModel->password     = $password; // akan di-hash di model
         $this->userModel->role         = 'mahasiswa';
 
-        $berhasil = $this->userModel->simpan();
+        try {
+            $berhasil = $this->userModel->simpan();
+        } catch (PDOException $exception) {
+            error_log('ReFindUHO failed to register user: ' . $exception->getMessage());
+            return ['success' => false, 'errors' => ['Terjadi kesalahan saat menyimpan data. Silakan coba lagi.']];
+        }
 
         if ($berhasil) {
             return ['success' => true, 'message' => 'Registrasi berhasil! Silakan login dengan akun Anda.'];
@@ -116,7 +121,12 @@ class AuthController
         }
 
         // Cari user berdasarkan NIM atau email
-        $user = $this->userModel->cariByIdentitas(trim($identitas));
+        try {
+            $user = $this->userModel->cariByIdentitas(trim($identitas));
+        } catch (PDOException $exception) {
+            error_log('ReFindUHO failed to login user: ' . $exception->getMessage());
+            return ['success' => false, 'errors' => ['Layanan sementara tidak tersedia. Silakan coba lagi.']];
+        }
 
         if ($user === null) {
             return ['success' => false, 'errors' => ['Akun dengan NIM/Email tersebut tidak ditemukan.']];
@@ -128,6 +138,7 @@ class AuthController
         }
 
         // Simpan data ke session
+        session_regenerate_id(true);
         $_SESSION['user'] = [
             'id_user'      => $user->id_user,
             'nama_lengkap' => $user->nama_lengkap,

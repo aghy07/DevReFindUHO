@@ -68,6 +68,24 @@ class Barang
     // =================================================================
     public function simpan(): bool
     {
+        $this->nama_barang = trim($this->nama_barang);
+        $this->deskripsi = trim($this->deskripsi);
+        $this->lokasi = trim($this->lokasi);
+        $this->kontak = trim($this->kontak);
+
+        if (
+            $this->id_user <= 0
+            || $this->id_kategori <= 0
+            || !in_array($this->jenis_laporan, ['hilang', 'temuan'], true)
+            || $this->nama_barang === ''
+            || $this->deskripsi === ''
+            || $this->lokasi === ''
+            || $this->tanggal_kejadian === ''
+            || $this->kontak === ''
+        ) {
+            return false;
+        }
+
         $sql = "INSERT INTO barang
                     (id_user, id_kategori, jenis_laporan, nama_barang, deskripsi,
                      lokasi, tanggal_kejadian, kontak, foto, status)
@@ -108,15 +126,20 @@ class Barang
             return false;
         }
 
-        $sql = "UPDATE barang SET status = 'Disetujui' WHERE id_barang = :id_barang";
+        $sql = "UPDATE barang
+                SET status = 'Disetujui', alasan_penolakan = NULL
+                WHERE id_barang = :id_barang
+                  AND status = 'Menunggu Verifikasi'";
         $stmt = $this->pdo->prepare($sql);
         $result = $stmt->execute([':id_barang' => $this->id_barang]);
 
-        if ($result) {
+        if ($result && $stmt->rowCount() === 1) {
             $this->status = 'Disetujui';
+            $this->alasan_penolakan = null;
+            return true;
         }
 
-        return $result;
+        return false;
     }
 
     // =================================================================
@@ -137,20 +160,23 @@ class Barang
             return false;
         }
 
-        $sql = "UPDATE barang SET status = 'Ditolak', alasan_penolakan = :alasan
-                WHERE id_barang = :id_barang";
+        $sql = "UPDATE barang
+                SET status = 'Ditolak', alasan_penolakan = :alasan
+                WHERE id_barang = :id_barang
+                  AND status = 'Menunggu Verifikasi'";
         $stmt = $this->pdo->prepare($sql);
         $result = $stmt->execute([
             ':alasan'    => trim($alasan),
             ':id_barang' => $this->id_barang,
         ]);
 
-        if ($result) {
+        if ($result && $stmt->rowCount() === 1) {
             $this->status           = 'Ditolak';
             $this->alasan_penolakan = trim($alasan);
+            return true;
         }
 
-        return $result;
+        return false;
     }
 
     // =================================================================
@@ -168,15 +194,19 @@ class Barang
             return false;
         }
 
-        $sql = "UPDATE barang SET status = 'Selesai' WHERE id_barang = :id_barang";
+        $sql = "UPDATE barang
+                SET status = 'Selesai'
+                WHERE id_barang = :id_barang
+                  AND status = 'Disetujui'";
         $stmt = $this->pdo->prepare($sql);
         $result = $stmt->execute([':id_barang' => $this->id_barang]);
 
-        if ($result) {
+        if ($result && $stmt->rowCount() === 1) {
             $this->status = 'Selesai';
+            return true;
         }
 
-        return $result;
+        return false;
     }
 
     // =================================================================
@@ -264,6 +294,8 @@ class Barang
         int $halaman = 1,
         int $perHalaman = 10
     ): array {
+        $halaman = max(1, $halaman);
+        $perHalaman = max(1, min($perHalaman, 100));
         $where  = "WHERE b.status = 'Disetujui'";
         $params = [];
 
@@ -351,6 +383,11 @@ class Barang
     // =================================================================
     public function cariByStatus(?string $status = null): array
     {
+        $allowedStatus = ['Menunggu Verifikasi', 'Disetujui', 'Ditolak', 'Selesai'];
+        if ($status !== null && $status !== '' && $status !== 'Semua' && !in_array($status, $allowedStatus, true)) {
+            return [];
+        }
+
         $sql = "SELECT b.*, u.nama_lengkap, k.nama_kategori
                 FROM barang b
                 JOIN users u ON b.id_user = u.id_user

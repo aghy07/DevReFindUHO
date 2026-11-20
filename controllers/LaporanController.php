@@ -63,7 +63,9 @@ class LaporanController
 
         // Validasi kategori valid di database
         $id_kategori = (int) ($data['id_kategori'] ?? 0);
-        if ($id_kategori > 0) {
+        if ($id_kategori <= 0) {
+            $errors[] = 'Kategori wajib dipilih.';
+        } else {
             $kat = $this->kategoriModel->cariById($id_kategori);
             if ($kat === null) {
                 $errors[] = 'Kategori yang dipilih tidak valid.';
@@ -73,11 +75,24 @@ class LaporanController
         // Validasi tanggal tidak di masa depan
         $tanggal = $data['tanggal_kejadian'] ?? '';
         if (!empty($tanggal)) {
-            $tglInput = strtotime($tanggal);
-            if ($tglInput === false) {
+            $tglInput = DateTimeImmutable::createFromFormat('!Y-m-d', $tanggal);
+            $formatValid = $tglInput !== false
+                && $tglInput->format('Y-m-d') === $tanggal;
+            if (!$formatValid) {
                 $errors[] = 'Format tanggal kejadian tidak valid.';
-            } elseif ($tglInput > strtotime('today')) {
+            } elseif ($tglInput > new DateTimeImmutable('today')) {
                 $errors[] = 'Tanggal kejadian tidak boleh di masa depan.';
+            }
+        }
+
+        foreach ([
+            'nama_barang' => 100,
+            'lokasi' => 150,
+            'kontak' => 100,
+        ] as $field => $maksimum) {
+            $nilai = trim((string) ($data[$field] ?? ''));
+            if (strlen($nilai) > $maksimum) {
+                $errors[] = 'Panjang ' . strtolower($field) . ' melebihi batas ' . $maksimum . ' karakter.';
             }
         }
 
@@ -87,6 +102,8 @@ class LaporanController
             // Cek error upload
             if ($file['error'] !== UPLOAD_ERR_OK) {
                 $errors[] = 'Terjadi kesalahan saat mengunggah foto. Kode error: ' . $file['error'];
+            } elseif (!is_uploaded_file($file['tmp_name'])) {
+                $errors[] = 'File foto tidak valid.';
             } else {
                 // Validasi format file (JPG/JPEG/PNG)
                 $allowedMime = ['image/jpeg', 'image/png'];
@@ -182,13 +199,25 @@ class LaporanController
         $barang->kontak           = trim($data['kontak']);
         $barang->foto             = $validasi['foto_path'];
 
-        $berhasil = $barang->simpan();
+        try {
+            $berhasil = $barang->simpan();
+        } catch (PDOException $exception) {
+            $berhasil = false;
+            error_log('ReFindUHO failed to save report: ' . $exception->getMessage());
+        }
 
         if ($berhasil) {
             return [
                 'success' => true,
                 'message' => 'Laporan barang berhasil dikirim dan sedang menunggu verifikasi admin.',
             ];
+        }
+
+        if ($validasi['foto_path'] !== null) {
+            $path = UPLOAD_DIR . $validasi['foto_path'];
+            if (is_file($path)) {
+                @unlink($path);
+            }
         }
 
         return ['success' => false, 'errors' => ['Gagal menyimpan laporan. Silakan coba lagi.']];

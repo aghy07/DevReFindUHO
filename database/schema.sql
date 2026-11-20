@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `kategori` (
     `id_kategori` INT AUTO_INCREMENT PRIMARY KEY,
-    `nama_kategori` VARCHAR(50) NOT NULL
+    `nama_kategori` VARCHAR(50) NOT NULL UNIQUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -52,13 +52,18 @@ CREATE TABLE IF NOT EXISTS `barang` (
 -- --------------------------------------------------------
 -- SEED DATA: Kategori Barang Tetap
 -- --------------------------------------------------------
-INSERT INTO `kategori` (`nama_kategori`) VALUES
-('Dokumen dan kartu'),
-('Elektronik'),
-('Tas dan dompet'),
-('Pakaian dan aksesori'),
-('Kunci'),
-('Lainnya');
+INSERT INTO `kategori` (`nama_kategori`)
+SELECT 'Dokumen dan kartu' WHERE NOT EXISTS (SELECT 1 FROM `kategori` WHERE `nama_kategori` = 'Dokumen dan kartu');
+INSERT INTO `kategori` (`nama_kategori`)
+SELECT 'Elektronik' WHERE NOT EXISTS (SELECT 1 FROM `kategori` WHERE `nama_kategori` = 'Elektronik');
+INSERT INTO `kategori` (`nama_kategori`)
+SELECT 'Tas dan dompet' WHERE NOT EXISTS (SELECT 1 FROM `kategori` WHERE `nama_kategori` = 'Tas dan dompet');
+INSERT INTO `kategori` (`nama_kategori`)
+SELECT 'Pakaian dan aksesori' WHERE NOT EXISTS (SELECT 1 FROM `kategori` WHERE `nama_kategori` = 'Pakaian dan aksesori');
+INSERT INTO `kategori` (`nama_kategori`)
+SELECT 'Kunci' WHERE NOT EXISTS (SELECT 1 FROM `kategori` WHERE `nama_kategori` = 'Kunci');
+INSERT INTO `kategori` (`nama_kategori`)
+SELECT 'Lainnya' WHERE NOT EXISTS (SELECT 1 FROM `kategori` WHERE `nama_kategori` = 'Lainnya');
 
 -- --------------------------------------------------------
 -- SEED DATA: Akun Default Administrator
@@ -66,5 +71,7 @@ INSERT INTO `kategori` (`nama_kategori`) VALUES
 -- Password: admin123 (bcrypt hash)
 -- Role    : admin (NIM = NULL)
 -- --------------------------------------------------------
-INSERT INTO `users` (`nama_lengkap`, `nim`, `email`, `password`, `role`) VALUES
-('Administrator ReFindUHO', NULL, 'admin@uho.ac.id', '$2y$10$66Cp0vHB5YWWK47xJGMoOOK17ck92Ne79r/7ZFUjvMg7/kxgLZyVu', 'admin');
+INSERT INTO `users` (`nama_lengkap`, `nim`, `email`, `password`, `role`)
+SELECT 'Administrator ReFindUHO', NULL, 'admin@uho.ac.id',
+       '$2y$10$9A8bcUAIqwxQs506Md2UFO0sJaQjDXLDAIrzjITK/keqGEu1Sg68W', 'admin'
+WHERE NOT EXISTS (SELECT 1 FROM `users` WHERE `email` = 'admin@uho.ac.id');
