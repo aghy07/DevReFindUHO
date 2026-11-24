@@ -6,7 +6,7 @@
 
 class Barang
 {
-    private PDO $pdo;
+    private ?PDO $pdo;
 
     // Properti publik
     public int     $id_barang        = 0;
@@ -23,14 +23,16 @@ class Barang
     public ?string $alasan_penolakan = null;
     public string  $created_at       = '';
 
-    // Properti relasi (dari JOIN, opsional)
+    // Properti relasi (dari JOIN)
     public string  $nama_pelapor     = '';
+    public ?string $nim_pelapor      = null;
+    public ?string $email_pelapor    = null;
     public string  $nama_kategori    = '';
 
     /**
-     * @param PDO $pdo Koneksi database
+     * @param ?PDO $pdo Koneksi database
      */
-    public function __construct(PDO $pdo)
+    public function __construct(?PDO $pdo = null)
     {
         $this->pdo = $pdo;
     }
@@ -56,6 +58,8 @@ class Barang
 
         // Kolom relasi (dari JOIN)
         $this->nama_pelapor     = $row['nama_lengkap'] ?? '';
+        $this->nim_pelapor      = $row['nim_pelapor'] ?? ($row['nim'] ?? null);
+        $this->email_pelapor    = $row['email_pelapor'] ?? ($row['email'] ?? null);
         $this->nama_kategori    = $row['nama_kategori'] ?? '';
     }
 
@@ -63,15 +67,17 @@ class Barang
     // METHOD: simpan
     // Menyimpan laporan barang baru ke database.
     // Status awal otomatis 'Menunggu Verifikasi' (BR-04).
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear → CC = 1
     // =================================================================
     public function simpan(): bool
     {
+        if ($this->pdo === null) {
+            return false;
+        }
+
         $this->nama_barang = trim($this->nama_barang);
-        $this->deskripsi = trim($this->deskripsi);
-        $this->lokasi = trim($this->lokasi);
-        $this->kontak = trim($this->kontak);
+        $this->deskripsi   = trim($this->deskripsi);
+        $this->lokasi      = trim($this->lokasi);
+        $this->kontak      = trim($this->kontak);
 
         if (
             $this->id_user <= 0
@@ -117,12 +123,10 @@ class Barang
     // METHOD: setujui
     // Mengubah status laporan menjadi 'Disetujui'.
     // Hanya berlaku jika status saat ini 'Menunggu Verifikasi'.
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan (status === 'Menunggu Verifikasi'), 2 jalur → CC = 2
     // =================================================================
     public function setujui(): bool
     {
-        if ($this->status !== 'Menunggu Verifikasi') {
+        if ($this->pdo === null || $this->status !== 'Menunggu Verifikasi') {
             return false;
         }
 
@@ -134,7 +138,7 @@ class Barang
         $result = $stmt->execute([':id_barang' => $this->id_barang]);
 
         if ($result && $stmt->rowCount() === 1) {
-            $this->status = 'Disetujui';
+            $this->status           = 'Disetujui';
             $this->alasan_penolakan = null;
             return true;
         }
@@ -147,12 +151,10 @@ class Barang
     // Mengubah status laporan menjadi 'Ditolak' dengan alasan wajib.
     // Hanya berlaku jika status saat ini 'Menunggu Verifikasi'.
     // Status 'Ditolak' bersifat akhir (final).
-    // -----------------------------------------------------------------
-    // CFG: 2 keputusan (status !== MV, alasan kosong), 3 jalur → CC = 3
     // =================================================================
     public function tolak(string $alasan): bool
     {
-        if ($this->status !== 'Menunggu Verifikasi') {
+        if ($this->pdo === null || $this->status !== 'Menunggu Verifikasi') {
             return false;
         }
 
@@ -183,14 +185,10 @@ class Barang
     // METHOD: selesaikan
     // Mengubah status laporan menjadi 'Selesai'.
     // Hanya berlaku jika status saat ini 'Disetujui'.
-    // Status 'Selesai' bersifat akhir (laporan hilang dari daftar
-    // barang mahasiswa, tetapi tetap tampil di dashboard pemilik).
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan (status === 'Disetujui'), 2 jalur → CC = 2
     // =================================================================
     public function selesaikan(): bool
     {
-        if ($this->status !== 'Disetujui') {
+        if ($this->pdo === null || $this->status !== 'Disetujui') {
             return false;
         }
 
@@ -209,35 +207,16 @@ class Barang
         return false;
     }
 
-    // =================================================================
-    // METHOD: getStatus
-    // Mengembalikan status laporan saat ini.
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear → CC = 1
-    // =================================================================
     public function getStatus(): string
     {
         return $this->status;
     }
 
-    // =================================================================
-    // METHOD: tampilDiDaftar
-    // Mengembalikan true jika laporan layak tampil di daftar barang
-    // publik (hanya status 'Disetujui' yang ditampilkan — FR-05).
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan, 2 jalur → CC = 2
-    // =================================================================
     public function tampilDiDaftar(): bool
     {
         return $this->status === 'Disetujui';
     }
 
-    // =================================================================
-    // METHOD: dimilikiOleh
-    // Memeriksa apakah laporan ini dimiliki oleh pengguna tertentu.
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan, 2 jalur → CC = 2
-    // =================================================================
     public function dimilikiOleh(int $id_user): bool
     {
         return $this->id_user === $id_user;
@@ -245,14 +224,16 @@ class Barang
 
     // =================================================================
     // METHOD: cariById
-    // Mencari satu laporan barang berdasarkan id_barang, lengkap
-    // dengan JOIN ke tabel users dan kategori.
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan, 2 jalur → CC = 2
+    // Mencari satu laporan barang berdasarkan id_barang lengkap dengan
+    // detail relasi pengguna pelapor dan kategori.
     // =================================================================
     public function cariById(int $id_barang): ?self
     {
-        $sql = "SELECT b.*, u.nama_lengkap, k.nama_kategori
+        if ($this->pdo === null) {
+            return null;
+        }
+
+        $sql = "SELECT b.*, u.nama_lengkap, u.nim AS nim_pelapor, u.email AS email_pelapor, k.nama_kategori
                 FROM barang b
                 JOIN users u ON b.id_user = u.id_user
                 JOIN kategori k ON b.id_kategori = k.id_kategori
@@ -273,19 +254,7 @@ class Barang
 
     // =================================================================
     // METHOD: cariDisetujui
-    // Mengambil laporan berstatus 'Disetujui' dengan pagination,
-    // pencarian kata kunci, filter kategori, dan filter jenis laporan
-    // yang bisa dikombinasikan (FR-05, FR-07).
-    //
-    // @param string $keyword   Kata kunci pencarian nama_barang
-    // @param int|null $id_kategori Filter kategori
-    // @param string|null $jenis    Filter jenis laporan (hilang/temuan)
-    // @param int $halaman      Nomor halaman (mulai dari 1)
-    // @param int $perHalaman   Jumlah per halaman (default 10)
-    // @return array ['data' => [...], 'total' => int, 'halaman' => int,
-    //                'totalHalaman' => int, 'perHalaman' => int]
-    // -----------------------------------------------------------------
-    // CFG: 3 keputusan (keyword, kategori, jenis), 4 jalur → CC = 4
+    // Mengambil laporan berstatus 'Disetujui' dengan pagination dan filter.
     // =================================================================
     public function cariDisetujui(
         string $keyword = '',
@@ -294,6 +263,16 @@ class Barang
         int $halaman = 1,
         int $perHalaman = 10
     ): array {
+        if ($this->pdo === null) {
+            return [
+                'data'         => [],
+                'total'        => 0,
+                'halaman'      => 1,
+                'totalHalaman' => 1,
+                'perHalaman'   => $perHalaman,
+            ];
+        }
+
         $halaman = max(1, $halaman);
         $perHalaman = max(1, min($perHalaman, 100));
         $where  = "WHERE b.status = 'Disetujui'";
@@ -346,7 +325,7 @@ class Barang
         $stmt->execute();
 
         return [
-            'data'         => $stmt->fetchAll(),
+            'data'         => $stmt->fetchAll() ?: [],
             'total'        => $total,
             'halaman'      => $halaman,
             'totalHalaman' => $totalHalaman,
@@ -355,14 +334,41 @@ class Barang
     }
 
     // =================================================================
+    // METHOD: cariTerbaruDisetujui
+    // Mengambil N laporan barang terbaru yang berstatus Disetujui
+    // untuk ditampilkan di Beranda / Homepage.
+    // =================================================================
+    public function cariTerbaruDisetujui(int $limit = 6): array
+    {
+        if ($this->pdo === null) {
+            return [];
+        }
+
+        $sql = "SELECT b.*, u.nama_lengkap, k.nama_kategori
+                FROM barang b
+                JOIN users u ON b.id_user = u.id_user
+                JOIN kategori k ON b.id_kategori = k.id_kategori
+                WHERE b.status = 'Disetujui'
+                ORDER BY b.created_at DESC
+                LIMIT :limit";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':limit', max(1, $limit), PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll() ?: [];
+    }
+
+    // =================================================================
     // METHOD: cariByPemilik
     // Mengambil seluruh laporan milik seorang pengguna (BR-07).
-    // Diurutkan dari terbaru.
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear → CC = 1
     // =================================================================
     public function cariByPemilik(int $id_user): array
     {
+        if ($this->pdo === null) {
+            return [];
+        }
+
         $sql = "SELECT b.*, u.nama_lengkap, k.nama_kategori
                 FROM barang b
                 JOIN users u ON b.id_user = u.id_user
@@ -371,18 +377,19 @@ class Barang
                 ORDER BY b.created_at DESC";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':id_user' => $id_user]);
-        return $stmt->fetchAll();
+        return $stmt->fetchAll() ?: [];
     }
 
     // =================================================================
     // METHOD: cariByStatus
     // Mengambil laporan berdasarkan status tertentu (untuk admin).
-    // Jika status null atau 'Semua', ambil seluruh laporan.
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan (status kosong atau 'Semua'), 2 jalur → CC = 2
     // =================================================================
     public function cariByStatus(?string $status = null): array
     {
+        if ($this->pdo === null) {
+            return [];
+        }
+
         $allowedStatus = ['Menunggu Verifikasi', 'Disetujui', 'Ditolak', 'Selesai'];
         if ($status !== null && $status !== '' && $status !== 'Semua' && !in_array($status, $allowedStatus, true)) {
             return [];
@@ -404,6 +411,36 @@ class Barang
 
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
-        return $stmt->fetchAll();
+        return $stmt->fetchAll() ?: [];
+    }
+
+    // =================================================================
+    // METHOD: hitungStatusAdmin
+    // Mengambil jumlah agregat tiap status untuk ringkasan kartu admin.
+    // =================================================================
+    public function hitungStatusAdmin(): array
+    {
+        $hasil = [
+            'Menunggu Verifikasi' => 0,
+            'Disetujui'           => 0,
+            'Ditolak'             => 0,
+            'Selesai'             => 0,
+        ];
+
+        if ($this->pdo === null) {
+            return $hasil;
+        }
+
+        $sql = "SELECT status, COUNT(*) as total FROM barang GROUP BY status";
+        $stmt = $this->pdo->query($sql);
+        if ($stmt) {
+            while ($row = $stmt->fetch()) {
+                if (isset($hasil[$row['status']])) {
+                    $hasil[$row['status']] = (int) $row['total'];
+                }
+            }
+        }
+
+        return $hasil;
     }
 }

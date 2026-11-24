@@ -9,13 +9,15 @@ require_once __DIR__ . '/../models/User.php';
 
 class AuthController
 {
-    private PDO  $pdo;
-    private User $userModel;
+    private ?PDO  $pdo;
+    private ?User $userModel = null;
 
-    public function __construct(PDO $pdo)
+    public function __construct(?PDO $pdo = null)
     {
-        $this->pdo       = $pdo;
-        $this->userModel = new User($pdo);
+        $this->pdo = $pdo;
+        if ($pdo !== null) {
+            $this->userModel = new User($pdo);
+        }
     }
 
     // =================================================================
@@ -24,19 +26,24 @@ class AuthController
     // Validasi: nama, NIM, email, password min 8, konfirmasi cocok,
     //           keunikan NIM & email.
     // Role otomatis 'mahasiswa'. Admin dibuat via SQL (BR-10).
-    // -----------------------------------------------------------------
-    // CFG: 7 keputusan → CC = 8
     // =================================================================
     public function registrasi(array $data): array
     {
+        if ($this->pdo === null || $this->userModel === null) {
+            return [
+                'success' => false,
+                'errors'  => ['Koneksi ke database tidak tersedia. Pastikan server database aktif.'],
+            ];
+        }
+
         $errors = [];
 
-        // Ambil & trim input
-        $nama_lengkap     = trim($data['nama_lengkap'] ?? '');
-        $nim              = trim($data['nim'] ?? '');
-        $email            = strtolower(trim($data['email'] ?? ''));
-        $password         = $data['password'] ?? '';
-        $konfirmasi       = $data['konfirmasi_password'] ?? '';
+        // Ambil & normalisasi input
+        $nama_lengkap = trim($data['nama_lengkap'] ?? '');
+        $nim          = strtoupper(trim($data['nim'] ?? ''));
+        $email        = strtolower(trim($data['email'] ?? ''));
+        $password     = $data['password'] ?? '';
+        $konfirmasi   = $data['konfirmasi_password'] ?? '';
 
         // Validasi: nama tidak boleh kosong
         if (empty($nama_lengkap)) {
@@ -88,7 +95,7 @@ class AuthController
         $this->userModel->nama_lengkap = $nama_lengkap;
         $this->userModel->nim          = $nim;
         $this->userModel->email        = $email;
-        $this->userModel->password     = $password; // akan di-hash di model
+        $this->userModel->password     = $password;
         $this->userModel->role         = 'mahasiswa';
 
         try {
@@ -99,7 +106,7 @@ class AuthController
         }
 
         if ($berhasil) {
-            return ['success' => true, 'message' => 'Registrasi berhasil! Silakan login dengan akun Anda.'];
+            return ['success' => true, 'message' => 'Registrasi berhasil! Silakan masuk dengan akun Anda.'];
         }
 
         return ['success' => false, 'errors' => ['Terjadi kesalahan saat menyimpan data. Silakan coba lagi.']];
@@ -110,11 +117,16 @@ class AuthController
     // Login pengguna menggunakan NIM/email dan kata sandi (FR-02).
     // Mahasiswa bisa login via NIM atau email; admin via email.
     // Setelah berhasil, data user disimpan di $_SESSION['user'].
-    // -----------------------------------------------------------------
-    // CFG: 3 keputusan → CC = 4
     // =================================================================
     public function login(string $identitas, string $password): array
     {
+        if ($this->pdo === null || $this->userModel === null) {
+            return [
+                'success' => false,
+                'errors'  => ['Koneksi ke database tidak tersedia. Pastikan server database aktif.'],
+            ];
+        }
+
         // Validasi input tidak boleh kosong
         if (empty(trim($identitas)) || empty($password)) {
             return ['success' => false, 'errors' => ['NIM/Email dan kata sandi wajib diisi.']];
@@ -137,7 +149,7 @@ class AuthController
             return ['success' => false, 'errors' => ['Kata sandi yang Anda masukkan salah.']];
         }
 
-        // Simpan data ke session
+        // Regenerasi ID sesi demi keamanan
         session_regenerate_id(true);
         $_SESSION['user'] = [
             'id_user'      => $user->id_user,
@@ -152,14 +164,12 @@ class AuthController
             ? base_url('pages/admin/dashboard.php')
             : base_url('pages/mahasiswa/dashboard.php');
 
-        return ['success' => true, 'redirect' => $redirect, 'message' => 'Login berhasil!'];
+        return ['success' => true, 'redirect' => $redirect, 'message' => 'Login berhasil! Selamat datang kembali.'];
     }
 
     // =================================================================
     // METHOD: logout
     // Menghapus seluruh data session dan mengarahkan ke halaman login.
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear → CC = 1
     // =================================================================
     public function logout(): void
     {
@@ -167,9 +177,14 @@ class AuthController
 
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params['path'], $params['domain'],
-                $params['secure'], $params['httponly']
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params['path'],
+                $params['domain'],
+                $params['secure'],
+                $params['httponly']
             );
         }
 
@@ -183,13 +198,11 @@ class AuthController
     // METHOD: pastikanLogin
     // Memeriksa apakah pengguna sudah login. Jika belum, redirect
     // ke halaman login.
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan, 2 jalur → CC = 2
     // =================================================================
     public function pastikanLogin(): void
     {
-        if (!isset($_SESSION['user'])) {
-            set_flash('warning', 'Anda harus login terlebih dahulu untuk mengakses halaman ini.');
+        if (!isset($_SESSION['user']['id_user'])) {
+            set_flash('warning', 'Anda harus masuk terlebih dahulu untuk mengakses halaman ini.');
             header('Location: ' . base_url('pages/auth/login.php'));
             exit;
         }
@@ -199,15 +212,13 @@ class AuthController
     // METHOD: pastikanAdmin
     // Memeriksa apakah pengguna yang login adalah admin. Jika bukan,
     // redirect ke halaman beranda.
-    // -----------------------------------------------------------------
-    // CFG: 2 keputusan (belum login, bukan admin), 3 jalur → CC = 3
     // =================================================================
     public function pastikanAdmin(): void
     {
         $this->pastikanLogin();
 
-        if ($_SESSION['user']['role'] !== 'admin') {
-            set_flash('danger', 'Anda tidak memiliki izin untuk mengakses halaman ini.');
+        if (($_SESSION['user']['role'] ?? '') !== 'admin') {
+            set_flash('danger', 'Anda tidak memiliki izin administrator untuk mengakses halaman ini.');
             header('Location: ' . base_url('index.php'));
             exit;
         }

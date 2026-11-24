@@ -6,21 +6,21 @@
 
 class User
 {
-    private PDO $pdo;
+    private ?PDO $pdo;
 
     // Properti publik (diisi dari data row database)
-    public int    $id_user       = 0;
-    public string $nama_lengkap  = '';
+    public int     $id_user      = 0;
+    public string  $nama_lengkap = '';
     public ?string $nim          = null;
-    public string $email         = '';
-    public string $password      = '';
-    public string $role          = 'mahasiswa';
-    public string $created_at    = '';
+    public string  $email        = '';
+    public string  $password     = '';
+    public string  $role         = 'mahasiswa';
+    public string  $created_at   = '';
 
     /**
-     * @param PDO $pdo Koneksi database
+     * @param ?PDO $pdo Koneksi database
      */
-    public function __construct(PDO $pdo)
+    public function __construct(?PDO $pdo = null)
     {
         $this->pdo = $pdo;
     }
@@ -32,8 +32,8 @@ class User
     {
         $this->id_user      = (int) ($row['id_user'] ?? 0);
         $this->nama_lengkap = $row['nama_lengkap'] ?? '';
-        $this->nim          = $row['nim'] ?? null;
-        $this->email        = $row['email'] ?? '';
+        $this->nim          = !empty($row['nim']) ? strtoupper(trim($row['nim'])) : null;
+        $this->email        = strtolower(trim($row['email'] ?? ''));
         $this->password     = $row['password'] ?? '';
         $this->role         = $row['role'] ?? 'mahasiswa';
         $this->created_at   = $row['created_at'] ?? '';
@@ -42,8 +42,6 @@ class User
     // =================================================================
     // METHOD: isAdmin
     // Mengembalikan true jika role pengguna adalah 'admin'.
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan (role === 'admin'), 2 jalur → CC = 2
     // =================================================================
     public function isAdmin(): bool
     {
@@ -53,8 +51,6 @@ class User
     // =================================================================
     // METHOD: cekPassword
     // Memverifikasi kata sandi plain terhadap hash yang tersimpan.
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan (password_verify), 2 jalur → CC = 2
     // =================================================================
     public function cekPassword(string $plainPassword): bool
     {
@@ -65,15 +61,17 @@ class User
     // METHOD: simpan
     // Menyimpan pengguna baru ke database.
     // Kata sandi di-hash dengan password_hash() sebelum disimpan.
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear → CC = 1
     // =================================================================
     public function simpan(): bool
     {
+        if ($this->pdo === null) {
+            return false;
+        }
+
         $this->nama_lengkap = trim($this->nama_lengkap);
-        $this->nim = $this->nim === null ? null : trim($this->nim);
-        $this->email = strtolower(trim($this->email));
-        $this->password = trim($this->password);
+        $this->nim          = ($this->nim === null || trim($this->nim) === '') ? null : strtoupper(trim($this->nim));
+        $this->email        = strtolower(trim($this->email));
+        $this->password     = trim($this->password);
 
         if (
             $this->nama_lengkap === ''
@@ -107,20 +105,23 @@ class User
     // METHOD: cariByIdentitas
     // Mencari pengguna berdasarkan NIM atau Email (untuk login).
     // Mahasiswa bisa login dengan NIM atau email; admin dengan email.
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan (row ditemukan / tidak), 2 jalur → CC = 2
     // =================================================================
     public function cariByIdentitas(string $identitas): ?self
     {
+        if ($this->pdo === null) {
+            return null;
+        }
+
         $identitas = trim($identitas);
         if ($identitas === '') {
             return null;
         }
+
         $sql = "SELECT * FROM users WHERE nim = :identitas OR email = :identitas2 LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([
-            ':identitas'  => $identitas,
-            ':identitas2' => $identitas,
+            ':identitas'  => strtoupper($identitas),
+            ':identitas2' => strtolower($identitas),
         ]);
         $row = $stmt->fetch();
 
@@ -136,11 +137,13 @@ class User
     // =================================================================
     // METHOD: cariById
     // Mencari pengguna berdasarkan id_user (Primary Key).
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan, 2 jalur → CC = 2
     // =================================================================
     public function cariById(int $id_user): ?self
     {
+        if ($this->pdo === null) {
+            return null;
+        }
+
         $sql = "SELECT * FROM users WHERE id_user = :id_user LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':id_user' => $id_user]);
@@ -159,30 +162,34 @@ class User
     // METHOD: nimAtauEmailTerdaftar
     // Memeriksa apakah NIM atau email sudah terdaftar di database.
     // Mengembalikan array berisi field mana yang duplikat.
-    // -----------------------------------------------------------------
-    // CFG: 3 keputusan (nim cocok, email cocok, ada duplikat),
-    //      4 jalur → CC = 4
     // =================================================================
     public function nimAtauEmailTerdaftar(string $nim, string $email): array
     {
         $duplikat = [];
+        if ($this->pdo === null) {
+            return $duplikat;
+        }
 
         // Cek NIM
+        $nim = trim($nim);
         if (!empty($nim)) {
             $sql = "SELECT COUNT(*) FROM users WHERE nim = :nim";
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([':nim' => $nim]);
+            $stmt->execute([':nim' => strtoupper($nim)]);
             if ((int) $stmt->fetchColumn() > 0) {
                 $duplikat[] = 'nim';
             }
         }
 
         // Cek Email
-        $sql = "SELECT COUNT(*) FROM users WHERE email = :email";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->execute([':email' => $email]);
-        if ((int) $stmt->fetchColumn() > 0) {
-            $duplikat[] = 'email';
+        $email = strtolower(trim($email));
+        if (!empty($email)) {
+            $sql = "SELECT COUNT(*) FROM users WHERE email = :email";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([':email' => $email]);
+            if ((int) $stmt->fetchColumn() > 0) {
+                $duplikat[] = 'email';
+            }
         }
 
         return $duplikat;

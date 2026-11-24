@@ -3,11 +3,11 @@
     --rf-primary-hover: #172554;
     --rf-primary-soft: #EFF6FF;
     --rf-accent: #D97706;
-    --rf-bg-canvas: #F4F5F7;
+    --rf-bg-canvas: #F8FAFC;
     --rf-bg-surface: #FFFFFF;
     --rf-border: #E2E8F0;
     --rf-text-main: #0F172A;
-    --rf-text-muted: #475569;
+    --rf-text-muted: #64748B;
 
     /* Status & Jenis Tokens */
     --rf-status-wait-bg: #FEF3C7;
@@ -30,6 +30,13 @@ body {
     color: var(--rf-text-main);
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     line-height: 1.55;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
 }
 
 h1, h2, h3, h4, h5, h6, .navbar-brand {
@@ -77,6 +84,19 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 .form-control:focus, .form-select:focus {
     border-color: var(--rf-primary);
     box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.14);
+}
+
+/* Navbar active indicator */
+.navbar-dark .navbar-nav .nav-link {
+    font-weight: 500;
+    transition: color 0.15s ease;
+}
+
+.navbar-dark .navbar-nav .nav-link.active {
+    color: #FFFFFF !important;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 6px;
 }
 
 /* 1. Button Tactile Press Animation */

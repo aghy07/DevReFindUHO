@@ -6,15 +6,15 @@
 
 class Kategori
 {
-    private PDO $pdo;
+    private ?PDO $pdo;
 
-    public int    $id_kategori  = 0;
+    public int    $id_kategori   = 0;
     public string $nama_kategori = '';
 
     /**
-     * @param PDO $pdo Koneksi database
+     * @param ?PDO $pdo Koneksi database
      */
-    public function __construct(PDO $pdo)
+    public function __construct(?PDO $pdo = null)
     {
         $this->pdo = $pdo;
     }
@@ -31,24 +31,28 @@ class Kategori
     // =================================================================
     // METHOD: semua
     // Mengambil seluruh kategori, diurutkan berdasarkan id_kategori.
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear → CC = 1
     // =================================================================
     public function semua(): array
     {
+        if ($this->pdo === null) {
+            return [];
+        }
+
         $sql = "SELECT * FROM kategori ORDER BY id_kategori ASC";
         $stmt = $this->pdo->query($sql);
-        return $stmt->fetchAll();
+        return $stmt ? $stmt->fetchAll() : [];
     }
 
     // =================================================================
     // METHOD: cariById
     // Mencari kategori berdasarkan id_kategori.
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan, 2 jalur → CC = 2
     // =================================================================
     public function cariById(int $id_kategori): ?self
     {
+        if ($this->pdo === null) {
+            return null;
+        }
+
         $sql = "SELECT * FROM kategori WHERE id_kategori = :id_kategori LIMIT 1";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute([':id_kategori' => $id_kategori]);

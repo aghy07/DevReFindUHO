@@ -12,27 +12,23 @@ require_once __DIR__ . '/../models/User.php';
 
 class LaporanController
 {
-    private PDO      $pdo;
-    private Barang   $barangModel;
-    private Kategori $kategoriModel;
+    private ?PDO      $pdo;
+    private ?Barang   $barangModel   = null;
+    private ?Kategori $kategoriModel = null;
 
-    public function __construct(PDO $pdo)
+    public function __construct(?PDO $pdo = null)
     {
-        $this->pdo           = $pdo;
-        $this->barangModel   = new Barang($pdo);
-        $this->kategoriModel = new Kategori($pdo);
+        $this->pdo = $pdo;
+        if ($pdo !== null) {
+            $this->barangModel   = new Barang($pdo);
+            $this->kategoriModel = new Kategori($pdo);
+        }
     }
 
     // =================================================================
     // METHOD: validasiLaporan
     // Memvalidasi seluruh input form laporan (server-side) termasuk
     // validasi foto unggah (opsional, JPG/PNG, max 2 MB, rename unik).
-    //
-    // @param array $data  Data POST
-    // @param array $file  Data $_FILES['foto']
-    // @return array ['valid' => bool, 'errors' => [...], 'foto_path' => ?string]
-    // -----------------------------------------------------------------
-    // CFG: 10 keputusan → CC = 11
     // =================================================================
     public function validasiLaporan(array $data, array $file = []): array
     {
@@ -65,19 +61,18 @@ class LaporanController
         $id_kategori = (int) ($data['id_kategori'] ?? 0);
         if ($id_kategori <= 0) {
             $errors[] = 'Kategori wajib dipilih.';
-        } else {
+        } elseif ($this->kategoriModel !== null) {
             $kat = $this->kategoriModel->cariById($id_kategori);
             if ($kat === null) {
                 $errors[] = 'Kategori yang dipilih tidak valid.';
             }
         }
 
-        // Validasi tanggal tidak di masa depan
+        // Validasi tanggal tidak di masa depan (menggunakan timezone lokal Asia/Makassar)
         $tanggal = $data['tanggal_kejadian'] ?? '';
         if (!empty($tanggal)) {
             $tglInput = DateTimeImmutable::createFromFormat('!Y-m-d', $tanggal);
-            $formatValid = $tglInput !== false
-                && $tglInput->format('Y-m-d') === $tanggal;
+            $formatValid = $tglInput !== false && $tglInput->format('Y-m-d') === $tanggal;
             if (!$formatValid) {
                 $errors[] = 'Format tanggal kejadian tidak valid.';
             } elseif ($tglInput > new DateTimeImmutable('today')) {
@@ -85,52 +80,65 @@ class LaporanController
             }
         }
 
-        foreach ([
-            'nama_barang' => 100,
-            'lokasi' => 150,
-            'kontak' => 100,
-        ] as $field => $maksimum) {
+        // Validasi batas panjang karakter
+        $maxLengths = [
+            'nama_barang' => ['label' => 'Nama barang', 'max' => 100],
+            'lokasi'      => ['label' => 'Lokasi kejadian', 'max' => 150],
+            'kontak'      => ['label' => 'Kontak pelapor', 'max' => 100],
+        ];
+
+        foreach ($maxLengths as $field => $info) {
             $nilai = trim((string) ($data[$field] ?? ''));
-            if (strlen($nilai) > $maksimum) {
-                $errors[] = 'Panjang ' . strtolower($field) . ' melebihi batas ' . $maksimum . ' karakter.';
+            if (strlen($nilai) > $info['max']) {
+                $errors[] = $info['label'] . ' maksimal ' . $info['max'] . ' karakter.';
             }
         }
 
         // Validasi foto (opsional)
         if (!empty($file) && isset($file['tmp_name']) && $file['error'] !== UPLOAD_ERR_NO_FILE) {
-
-            // Cek error upload
-            if ($file['error'] !== UPLOAD_ERR_OK) {
+            if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+                $errors[] = 'Ukuran foto melebihi batas maksimal server (2 MB).';
+            } elseif ($file['error'] !== UPLOAD_ERR_OK) {
                 $errors[] = 'Terjadi kesalahan saat mengunggah foto. Kode error: ' . $file['error'];
             } elseif (!is_uploaded_file($file['tmp_name'])) {
                 $errors[] = 'File foto tidak valid.';
             } else {
-                // Validasi format file (JPG/JPEG/PNG)
                 $allowedMime = ['image/jpeg', 'image/png'];
                 $allowedExt  = ['jpg', 'jpeg', 'png'];
 
-                $finfo    = new finfo(FILEINFO_MIME_TYPE);
-                $mimeType = $finfo->file($file['tmp_name']);
-                $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                $ext = strtolower(pathinfo($file['name'] ?? '', PATHINFO_EXTENSION));
 
-                if (!in_array($mimeType, $allowedMime, true) || !in_array($ext, $allowedExt, true)) {
-                    $errors[] = 'Format foto harus JPG, JPEG, atau PNG.';
+                // Deteksi MIME type dengan fallback aman jika fileinfo belum aktif
+                $mimeType = null;
+                if (class_exists('finfo')) {
+                    $finfo = new finfo(FILEINFO_MIME_TYPE);
+                    $mimeType = $finfo->file($file['tmp_name']);
+                } elseif (function_exists('mime_content_type')) {
+                    $mimeType = mime_content_type($file['tmp_name']);
+                } elseif (function_exists('getimagesize')) {
+                    $imgInfo = @getimagesize($file['tmp_name']);
+                    $mimeType = $imgInfo['mime'] ?? null;
+                }
+
+                $isValidMime = ($mimeType !== null && in_array($mimeType, $allowedMime, true));
+                $isValidExt  = in_array($ext, $allowedExt, true);
+
+                if (!$isValidMime || !$isValidExt) {
+                    $errors[] = 'Format foto harus berupa JPG, JPEG, atau PNG.';
                 }
 
                 // Validasi ukuran file (max 2 MB)
-                $maxSize = 2 * 1024 * 1024; // 2 MB
+                $maxSize = 2 * 1024 * 1024;
                 if ($file['size'] > $maxSize) {
                     $errors[] = 'Ukuran foto maksimal 2 MB.';
                 }
 
-                // Jika lolos validasi, proses upload
+                // Jika lolos validasi, simpan foto
                 if (empty($errors)) {
-                    // Buat nama file unik
-                    $namaUnik = uniqid('rfuho_', true) . '.' . $ext;
+                    $namaUnik = uniqid('rfuho_', true) . '.' . ($ext === 'jpeg' ? 'jpg' : $ext);
 
-                    // Pastikan folder uploads ada
                     if (!is_dir(UPLOAD_DIR)) {
-                        mkdir(UPLOAD_DIR, 0755, true);
+                        @mkdir(UPLOAD_DIR, 0755, true);
                     }
 
                     $tujuan = UPLOAD_DIR . $namaUnik;
@@ -138,7 +146,7 @@ class LaporanController
                     if (move_uploaded_file($file['tmp_name'], $tujuan)) {
                         $fotoPath = $namaUnik;
                     } else {
-                        $errors[] = 'Gagal menyimpan foto. Periksa izin folder uploads/.';
+                        $errors[] = 'Gagal menyimpan foto ke server. Periksa izin folder uploads/.';
                     }
                 }
             }
@@ -153,9 +161,6 @@ class LaporanController
 
     // =================================================================
     // METHOD: buatLaporanHilang
-    // Membuat laporan barang hilang (FR-03). Jenis otomatis 'hilang'.
-    // -----------------------------------------------------------------
-    // CFG: 2 keputusan (validasi gagal, simpan gagal) → CC = 3
     // =================================================================
     public function buatLaporanHilang(array $data, array $file, int $id_user): array
     {
@@ -165,9 +170,6 @@ class LaporanController
 
     // =================================================================
     // METHOD: buatLaporanTemuan
-    // Membuat laporan barang temuan (FR-04). Jenis otomatis 'temuan'.
-    // -----------------------------------------------------------------
-    // CFG: 2 keputusan → CC = 3
     // =================================================================
     public function buatLaporanTemuan(array $data, array $file, int $id_user): array
     {
@@ -176,18 +178,23 @@ class LaporanController
     }
 
     // -----------------------------------------------------------------
-    // INTERNAL: Proses laporan (dipakai oleh buatLaporanHilang/Temuan)
+    // INTERNAL: Proses laporan
     // -----------------------------------------------------------------
     private function prosesLaporan(array $data, array $file, int $id_user): array
     {
-        // Validasi input & foto
+        if ($this->pdo === null) {
+            return [
+                'success' => false,
+                'errors'  => ['Koneksi database tidak tersedia.'],
+            ];
+        }
+
         $validasi = $this->validasiLaporan($data, $file);
 
         if (!$validasi['valid']) {
             return ['success' => false, 'errors' => $validasi['errors']];
         }
 
-        // Siapkan model dan simpan
         $barang = new Barang($this->pdo);
         $barang->id_user          = $id_user;
         $barang->id_kategori      = (int) $data['id_kategori'];
@@ -209,7 +216,7 @@ class LaporanController
         if ($berhasil) {
             return [
                 'success' => true,
-                'message' => 'Laporan barang berhasil dikirim dan sedang menunggu verifikasi admin.',
+                'message' => 'Laporan barang berhasil dikirim dan sedang menunggu verifikasi admin kampus.',
             ];
         }
 
@@ -220,15 +227,11 @@ class LaporanController
             }
         }
 
-        return ['success' => false, 'errors' => ['Gagal menyimpan laporan. Silakan coba lagi.']];
+        return ['success' => false, 'errors' => ['Gagal menyimpan laporan ke database. Silakan coba lagi.']];
     }
 
     // =================================================================
-    // METHOD: daftarBarang
-    // Mengambil daftar barang berstatus 'Disetujui' dengan pagination,
-    // pencarian, dan filter (FR-05, FR-07).
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear (delegasi ke model) → CC = 1
+    // METHOD: daftarBarang (FR-05, FR-07)
     // =================================================================
     public function daftarBarang(
         string $keyword = '',
@@ -236,15 +239,18 @@ class LaporanController
         ?string $jenis = null,
         int $halaman = 1
     ): array {
+        if ($this->barangModel === null) {
+            return [
+                'data'         => [],
+                'total'        => 0,
+                'halaman'      => 1,
+                'totalHalaman' => 1,
+                'perHalaman'   => 10,
+            ];
+        }
         return $this->barangModel->cariDisetujui($keyword, $id_kategori, $jenis, $halaman, 10);
     }
 
-    // =================================================================
-    // METHOD: cariBarang
-    // Alias pencarian barang — memanggil daftarBarang (FR-07).
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear → CC = 1
-    // =================================================================
     public function cariBarang(
         string $keyword = '',
         ?int $id_kategori = null,
@@ -255,72 +261,92 @@ class LaporanController
     }
 
     // =================================================================
-    // METHOD: detailBarang
-    // Mengambil detail satu barang untuk halaman detail mahasiswa.
-    // Hanya mengembalikan barang berstatus 'Disetujui' (FR-06).
-    // -----------------------------------------------------------------
-    // CFG: 2 keputusan (tidak ditemukan, tidak disetujui) → CC = 3
+    // METHOD: laporanTerbaru (Homepage preview)
     // =================================================================
-    public function detailBarang(int $id_barang): ?Barang
+    public function laporanTerbaru(int $limit = 6): array
     {
+        if ($this->barangModel === null) {
+            return [];
+        }
+        return $this->barangModel->cariTerbaruDisetujui($limit);
+    }
+
+    // =================================================================
+    // METHOD: detailBarang (FR-06)
+    // Publik hanya melihat 'Disetujui'. Pemilik laporan & admin dapat
+    // melihat laporan mereka dalam status apa pun.
+    // =================================================================
+    public function detailBarang(int $id_barang, ?int $id_user = null, bool $isAdmin = false): ?Barang
+    {
+        if ($this->barangModel === null) {
+            return null;
+        }
+
         $barang = $this->barangModel->cariById($id_barang);
 
         if ($barang === null) {
             return null;
         }
 
-        // Hanya barang 'Disetujui' boleh diakses dari halaman publik
-        if (!$barang->tampilDiDaftar()) {
-            return null;
+        if ($barang->tampilDiDaftar() || ($id_user !== null && $barang->dimilikiOleh($id_user)) || $isAdmin) {
+            return $barang;
         }
 
-        return $barang;
+        return null;
     }
 
     // =================================================================
-    // METHOD: laporanSaya
-    // Mengambil seluruh laporan milik mahasiswa yang sedang login
-    // (FR-08, BR-07).
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear → CC = 1
+    // METHOD: laporanSaya (FR-08, BR-07)
     // =================================================================
     public function laporanSaya(int $id_user): array
     {
+        if ($this->barangModel === null) {
+            return [];
+        }
         return $this->barangModel->cariByPemilik($id_user);
     }
 
     // =================================================================
-    // METHOD: laporanMasuk
-    // Mengambil daftar laporan masuk untuk admin, dengan filter
-    // status opsional (FR-09).
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear → CC = 1
+    // METHOD: laporanMasuk (FR-09)
     // =================================================================
     public function laporanMasuk(?string $status = null): array
     {
+        if ($this->barangModel === null) {
+            return [];
+        }
         return $this->barangModel->cariByStatus($status);
     }
 
-    // =================================================================
-    // METHOD: detailLaporanAdmin
-    // Mengambil detail satu laporan untuk panel admin.
-    // Tidak ada pembatasan status (admin boleh lihat semua).
-    // -----------------------------------------------------------------
-    // CFG: 1 keputusan → CC = 2
-    // =================================================================
+    public function hitungRingkasanAdmin(): array
+    {
+        if ($this->barangModel === null) {
+            return [
+                'Menunggu Verifikasi' => 0,
+                'Disetujui'           => 0,
+                'Ditolak'             => 0,
+                'Selesai'             => 0,
+            ];
+        }
+        return $this->barangModel->hitungStatusAdmin();
+    }
+
     public function detailLaporanAdmin(int $id_barang): ?Barang
     {
+        if ($this->barangModel === null) {
+            return null;
+        }
         return $this->barangModel->cariById($id_barang);
     }
 
     // =================================================================
-    // METHOD: setujuiLaporan
-    // Admin menyetujui laporan (FR-10). Status → 'Disetujui'.
-    // -----------------------------------------------------------------
-    // CFG: 2 keputusan → CC = 3
+    // METHOD: setujuiLaporan (FR-10)
     // =================================================================
     public function setujuiLaporan(int $id_barang): array
     {
+        if ($this->barangModel === null) {
+            return ['success' => false, 'message' => 'Koneksi database tidak tersedia.'];
+        }
+
         $barang = $this->barangModel->cariById($id_barang);
 
         if ($barang === null) {
@@ -330,23 +356,23 @@ class LaporanController
         $berhasil = $barang->setujui();
 
         if ($berhasil) {
-            return ['success' => true, 'message' => 'Laporan berhasil disetujui.'];
+            return ['success' => true, 'message' => 'Laporan berhasil disetujui dan kini tampil di daftar barang.'];
         }
 
         return ['success' => false, 'message' => 'Gagal menyetujui laporan. Pastikan status saat ini adalah "Menunggu Verifikasi".'];
     }
 
     // =================================================================
-    // METHOD: tolakLaporan
-    // Admin menolak laporan dengan alasan wajib (FR-10).
-    // Status → 'Ditolak' (bersifat akhir / final).
-    // -----------------------------------------------------------------
-    // CFG: 3 keputusan → CC = 4
+    // METHOD: tolakLaporan (FR-10)
     // =================================================================
     public function tolakLaporan(int $id_barang, string $alasan): array
     {
         if (empty(trim($alasan))) {
             return ['success' => false, 'message' => 'Alasan penolakan wajib diisi.'];
+        }
+
+        if ($this->barangModel === null) {
+            return ['success' => false, 'message' => 'Koneksi database tidak tersedia.'];
         }
 
         $barang = $this->barangModel->cariById($id_barang);
@@ -365,16 +391,14 @@ class LaporanController
     }
 
     // =================================================================
-    // METHOD: selesaikanLaporan
-    // Admin menandai laporan sebagai selesai (FR-11).
-    // Status → 'Selesai' (bersifat akhir / final).
-    // Laporan hilang dari daftar barang mahasiswa, tetapi tetap
-    // tampil di dashboard pemilik.
-    // -----------------------------------------------------------------
-    // CFG: 2 keputusan → CC = 3
+    // METHOD: selesaikanLaporan (FR-11 - Admin)
     // =================================================================
     public function selesaikanLaporan(int $id_barang): array
     {
+        if ($this->barangModel === null) {
+            return ['success' => false, 'message' => 'Koneksi database tidak tersedia.'];
+        }
+
         $barang = $this->barangModel->cariById($id_barang);
 
         if ($barang === null) {
@@ -391,13 +415,45 @@ class LaporanController
     }
 
     // =================================================================
+    // METHOD: selesaikanLaporanMahasiswa (Penyelesaian mandiri oleh pemilik)
+    // =================================================================
+    public function selesaikanLaporanMahasiswa(int $id_barang, int $id_user): array
+    {
+        if ($this->barangModel === null) {
+            return ['success' => false, 'message' => 'Koneksi database tidak tersedia.'];
+        }
+
+        $barang = $this->barangModel->cariById($id_barang);
+
+        if ($barang === null) {
+            return ['success' => false, 'message' => 'Laporan tidak ditemukan.'];
+        }
+
+        if (!$barang->dimilikiOleh($id_user)) {
+            return ['success' => false, 'message' => 'Anda tidak memiliki hak untuk mengubah laporan ini.'];
+        }
+
+        if ($barang->status !== 'Disetujui') {
+            return ['success' => false, 'message' => 'Hanya laporan berstatus "Disetujui" yang dapat ditandai selesai.'];
+        }
+
+        $berhasil = $barang->selesaikan();
+
+        if ($berhasil) {
+            return ['success' => true, 'message' => 'Alhamdulillah! Laporan Anda telah berhasil ditandai selesai.'];
+        }
+
+        return ['success' => false, 'message' => 'Gagal mengubah status laporan.'];
+    }
+
+    // =================================================================
     // METHOD: daftarKategori
-    // Mengambil seluruh kategori untuk dropdown form laporan.
-    // -----------------------------------------------------------------
-    // CFG: 1 jalur linear → CC = 1
     // =================================================================
     public function daftarKategori(): array
     {
+        if ($this->kategoriModel === null) {
+            return [];
+        }
         return $this->kategoriModel->semua();
     }
 }

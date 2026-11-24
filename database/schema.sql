@@ -45,6 +45,9 @@ CREATE TABLE IF NOT EXISTS `barang` (
     `status` ENUM('Menunggu Verifikasi', 'Disetujui', 'Ditolak', 'Selesai') NOT NULL DEFAULT 'Menunggu Verifikasi',
     `alasan_penolakan` TEXT DEFAULT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX `idx_barang_status_created` (`status`, `created_at`),
+    INDEX `idx_barang_user` (`id_user`),
+    INDEX `idx_barang_kategori` (`id_kategori`),
     CONSTRAINT `fk_barang_users` FOREIGN KEY (`id_user`) REFERENCES `users` (`id_user`) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT `fk_barang_kategori` FOREIGN KEY (`id_kategori`) REFERENCES `kategori` (`id_kategori`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

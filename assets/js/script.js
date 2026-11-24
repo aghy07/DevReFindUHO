@@ -29,15 +29,17 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 3. Submit Button Loading Lock
+    // 3. Submit Button Loading Lock (Asynchronous lock to ensure form data submits correctly)
     document.querySelectorAll('form[data-loading-submit]').forEach((form) => {
         form.addEventListener('submit', (e) => {
             if (!form.checkValidity()) return;
             const btn = form.querySelector('button[type="submit"]');
             if (btn && !btn.disabled) {
-                btn.disabled = true;
                 const label = btn.getAttribute('data-loading-text') || 'Memproses...';
-                btn.innerHTML = `<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> ${label}`;
+                setTimeout(() => {
+                    btn.disabled = true;
+                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> ${label}`;
+                }, 0);
             }
         });
     });
@@ -66,13 +68,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateFormLabels = (jenis) => {
         if (!labelLokasi || !labelTanggal || !hintDeskripsi) return;
         if (jenis === 'temuan') {
-            labelLokasi.textContent = 'Lokasi Barang Ditemukan';
-            labelTanggal.textContent = 'Tanggal Ditemukan';
-            hintDeskripsi.textContent = 'Jelaskan ciri barang dan sebutkan tempat barang disimpan saat ini.';
+            labelLokasi.innerHTML = 'Lokasi Barang Ditemukan <span class="text-danger">*</span>';
+            labelTanggal.innerHTML = 'Tanggal Ditemukan <span class="text-danger">*</span>';
+            hintDeskripsi.textContent = 'Jelaskan ciri khusus barang dan sebutkan di mana barang disimpan / dapat diambil saat ini.';
         } else {
-            labelLokasi.textContent = 'Lokasi Terakhir Terlihat';
-            labelTanggal.textContent = 'Tanggal Hilang';
-            hintDeskripsi.textContent = 'Jelaskan ciri khusus, warna, merek, atau isi barang agar mudah dikenali.';
+            labelLokasi.innerHTML = 'Lokasi Terakhir Terlihat <span class="text-danger">*</span>';
+            labelTanggal.innerHTML = 'Tanggal Hilang <span class="text-danger">*</span>';
+            hintDeskripsi.textContent = 'Jelaskan ciri khusus, warna, merek, atau isi barang agar mudah dikenali pemiliknya.';
         }
     };
 
@@ -95,14 +97,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 previewWrap.classList.add('d-none');
                 return;
             }
+
             const allowedTypes = ['image/jpeg', 'image/png'];
+            const allowedExts = ['jpg', 'jpeg', 'png'];
+            const ext = file.name.split('.').pop().toLowerCase();
             const maxSize = 2 * 1024 * 1024; // 2 MB
 
-            if (!allowedTypes.includes(file.type)) {
+            // Izinkan jika MIME type cocok ATAU ekstensi file valid (mengatasi Windows MIME kosong)
+            const isValidFormat = allowedTypes.includes(file.type) || allowedExts.includes(ext);
+
+            if (!isValidFormat) {
                 inputFoto.value = '';
                 previewWrap.classList.add('d-none');
                 if (fotoError) {
-                    fotoError.textContent = 'Format foto harus JPG atau PNG.';
+                    fotoError.textContent = 'Format foto harus berupa JPG, JPEG, atau PNG.';
                     fotoError.classList.remove('d-none');
                 }
                 return;
@@ -134,14 +142,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!text) return;
             try {
                 await navigator.clipboard.writeText(text);
-                const original = btn.innerHTML;
-                btn.innerHTML = '<i class="bi bi-check2"></i> Tersalin';
-                setTimeout(() => { btn.innerHTML = original; }, 1800);
-            } catch (_) {}
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check2"></i> Nomor Tersalin!';
+                btn.classList.remove('btn-rf-primary');
+                btn.classList.add('btn-success');
+                setTimeout(() => {
+                    btn.innerHTML = originalHtml;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-rf-primary');
+                }, 2000);
+            } catch (_) {
+                // Fallback copy
+                const tempInput = document.createElement('input');
+                tempInput.value = text;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                btn.innerHTML = '<i class="bi bi-check2"></i> Tersalin!';
+            }
         });
     });
 
-    // 8. Admin Action Confirmation
+    // 8. Action Confirmation
     document.querySelectorAll('[data-confirm]').forEach((el) => {
         el.addEventListener('click', (e) => {
             const msg = el.getAttribute('data-confirm');
