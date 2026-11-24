@@ -1,0 +1,311 @@
+:root {
+    --rf-primary: #1E3A8A;
+    --rf-primary-hover: #172554;
+    --rf-primary-soft: #EFF6FF;
+    --rf-accent: #D97706;
+    --rf-bg-canvas: #F4F5F7;
+    --rf-bg-surface: #FFFFFF;
+    --rf-border: #E2E8F0;
+    --rf-text-main: #0F172A;
+    --rf-text-muted: #475569;
+
+    /* Status & Jenis Tokens */
+    --rf-status-wait-bg: #FEF3C7;
+    --rf-status-wait-text: #92400E;
+    --rf-status-ok-bg: #DCFCE7;
+    --rf-status-ok-text: #166534;
+    --rf-status-no-bg: #FEE2E2;
+    --rf-status-no-text: #991B1B;
+    --rf-status-done-bg: #F1F5F9;
+    --rf-status-done-text: #334155;
+
+    --rf-jenis-hilang-bg: #FFF1F2;
+    --rf-jenis-hilang-text: #BE123C;
+    --rf-jenis-temuan-bg: #ECFEFF;
+    --rf-jenis-temuan-text: #0E7490;
+}
+
+body {
+    background-color: var(--rf-bg-canvas);
+    color: var(--rf-text-main);
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.55;
+}
+
+h1, h2, h3, h4, h5, h6, .navbar-brand {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.015em;
+}
+
+.font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.container-rf {
+    max-width: 1140px;
+}
+
+/* Primary Theme Overrides */
+.bg-rf-primary {
+    background-color: var(--rf-primary) !important;
+}
+
+.text-rf-primary {
+    color: var(--rf-primary) !important;
+}
+
+.btn-rf-primary {
+    background-color: var(--rf-primary);
+    border-color: var(--rf-primary);
+    color: #FFFFFF;
+    font-weight: 500;
+}
+
+.btn-rf-primary:hover,
+.btn-rf-primary:focus {
+    background-color: var(--rf-primary-hover);
+    border-color: var(--rf-primary-hover);
+    color: #FFFFFF;
+}
+
+.form-control, .form-select {
+    border-color: var(--rf-border);
+    border-radius: 6px;
+    min-height: 44px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--rf-primary);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.14);
+}
+
+/* 1. Button Tactile Press Animation */
+.btn {
+    border-radius: 6px;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.14s ease,
+                background-color 0.14s ease,
+                border-color 0.14s ease;
+}
+
+.btn-sm {
+    min-height: 36px;
+}
+
+.btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+}
+
+.btn:active:not(:disabled) {
+    transform: scale(0.965) translateY(1px);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.14);
+}
+
+/* 2. Card Surface & Interactive Hover/Press Animation */
+.card-surface {
+    background-color: var(--rf-bg-surface);
+    border: 1px solid var(--rf-border);
+    border-radius: 8px;
+}
+
+.card-interactive {
+    background-color: var(--rf-bg-surface);
+    border: 1px solid var(--rf-border);
+    border-radius: 8px;
+    transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.2s ease,
+                border-color 0.2s ease;
+}
+
+.card-interactive:hover {
+    transform: translateY(-3px);
+    border-color: rgba(30, 58, 138, 0.45);
+    box-shadow: 0 10px 20px -6px rgba(15, 23, 42, 0.10);
+}
+
+.card-interactive:active {
+    transform: scale(0.985) translateY(-1px);
+    box-shadow: 0 3px 8px -2px rgba(15, 23, 42, 0.08);
+    transition-duration: 0.1s;
+}
+
+/* 3. Skeleton Shimmer Loading */
+@keyframes rf-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton-shimmer {
+    background: linear-gradient(90deg, #E2E8F0 25%, #F1F5F9 50%, #E2E8F0 75%);
+    background-size: 200% 100%;
+    animation: rf-shimmer 1.4s infinite linear;
+    border-radius: 6px;
+}
+
+.img-shimmer-wrap {
+    position: relative;
+    overflow: hidden;
+    background-color: #E2E8F0;
+    aspect-ratio: 4 / 3;
+}
+
+.img-shimmer-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.img-shimmer-wrap.is-loaded {
+    animation: none;
+    background: #F8FAFC;
+}
+
+.img-shimmer-wrap.is-loaded img {
+    opacity: 1;
+}
+
+.skeleton-img { height: 190px; width: 100%; }
+.skeleton-line { height: 14px; margin-bottom: 0.5rem; }
+.skeleton-line.short { width: 55%; }
+
+/* Semantic Badges */
+.badge-rf {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.32rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 6px;
+    line-height: 1;
+}
+
+.badge-status-wait { background: var(--rf-status-wait-bg); color: var(--rf-status-wait-text); }
+.badge-status-ok   { background: var(--rf-status-ok-bg); color: var(--rf-status-ok-text); }
+.badge-status-no   { background: var(--rf-status-no-bg); color: var(--rf-status-no-text); }
+.badge-status-done { background: var(--rf-status-done-bg); color: var(--rf-status-done-text); }
+
+.badge-jenis-hilang { background: var(--rf-jenis-hilang-bg); color: var(--rf-jenis-hilang-text); }
+.badge-jenis-temuan { background: var(--rf-jenis-temuan-bg); color: var(--rf-jenis-temuan-text); }
+
+/* Radio Card Selector (Form Laporan) */
+.radio-card-input {
+    display: none;
+}
+
+.radio-card-label {
+    display: block;
+    padding: 1rem;
+    border: 1px solid var(--rf-border);
+    border-radius: 8px;
+    background-color: var(--rf-bg-surface);
+    cursor: pointer;
+    transition: all 0.16s ease;
+}
+
+.radio-card-input:checked + .radio-card-label {
+    border-color: var(--rf-primary);
+    background-color: var(--rf-primary-soft);
+    box-shadow: 0 0 0 1px var(--rf-primary);
+}
+
+/* Outline variant */
+.btn-outline-rf-primary {
+    color: var(--rf-primary);
+    border-color: var(--rf-primary);
+    background-color: transparent;
+    font-weight: 500;
+}
+
+.btn-outline-rf-primary:hover,
+.btn-outline-rf-primary:focus {
+    background-color: var(--rf-primary);
+    border-color: var(--rf-primary);
+    color: #FFFFFF;
+}
+
+/* Hero Section */
+.hero-section {
+    background-color: var(--rf-primary);
+    color: #FFFFFF;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background-color: var(--rf-accent);
+}
+
+/* Pagination */
+.page-link {
+    color: var(--rf-primary);
+    border-color: var(--rf-border);
+    min-width: 42px;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-item.active .page-link {
+    background-color: var(--rf-primary);
+    border-color: var(--rf-primary);
+    color: #FFFFFF;
+}
+
+.page-link:hover {
+    background-color: var(--rf-primary-soft);
+    color: var(--rf-primary);
+    border-color: var(--rf-primary);
+}
+
+/* Rejection block */
+.rejection-block {
+    background-color: var(--rf-status-no-bg);
+    color: var(--rf-status-no-text);
+    border: 1px solid rgba(153, 27, 27, 0.2);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+/* Admin summary card clickable */
+.summary-card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.summary-card-link:hover {
+    color: inherit;
+}
+
+/* Text truncation helpers */
+.text-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Footer */
+.footer-rf {
+    background-color: var(--rf-bg-surface);
+    border-top: 1px solid var(--rf-border);
+    color: var(--rf-text-muted);
+    font-size: 0.875rem;
+}
