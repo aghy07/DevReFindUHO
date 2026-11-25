@@ -173,4 +173,65 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    // 9. Landing Page "Cara Kerja" Motion (Fade-in + Light Parallax)
+    const processSection = document.querySelector('.process-section');
+    if (processSection) {
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const revealEls = processSection.querySelectorAll('.process-reveal');
+
+        if (!prefersReducedMotion) {
+            document.documentElement.classList.add('js-motion-ready');
+        }
+
+        if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+            revealEls.forEach((el) => el.classList.add('is-visible'));
+        } else {
+            const revealObserver = new IntersectionObserver(
+                (entries, observer) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('is-visible');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                },
+                { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+            );
+            revealEls.forEach((el) => revealObserver.observe(el));
+        }
+
+        const parallaxEls = processSection.querySelectorAll('[data-parallax-speed]');
+        if (!prefersReducedMotion && parallaxEls.length > 0) {
+            let rafId = null;
+
+            const updateParallax = () => {
+                rafId = null;
+                const rect = processSection.getBoundingClientRect();
+                const viewportCenter = window.innerHeight * 0.5;
+                if (rect.bottom < -120 || rect.top > window.innerHeight + 120) {
+                    return;
+                }
+                const sectionCenter = rect.top + rect.height * 0.5;
+                const delta = viewportCenter - sectionCenter;
+
+                parallaxEls.forEach((el) => {
+                    const speed = parseFloat(el.getAttribute('data-parallax-speed') || '0');
+                    const rawOffset = delta * speed;
+                    const clamped = Math.max(-18, Math.min(18, rawOffset));
+                    el.style.setProperty('--parallax-y', `${clamped.toFixed(2)}px`);
+                });
+            };
+
+            const onScrollOrResize = () => {
+                if (rafId === null) {
+                    rafId = window.requestAnimationFrame(updateParallax);
+                }
+            };
+
+            updateParallax();
+            window.addEventListener('scroll', onScrollOrResize, { passive: true });
+            window.addEventListener('resize', onScrollOrResize, { passive: true });
+        }
+    }
 });

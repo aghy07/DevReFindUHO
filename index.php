@@ -166,9 +166,13 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
 </section>
 <?php endif; ?>
 
-<section class="section-wrap">
-    <div class="container container-rf">
-        <div class="section-heading">
+<section class="section-wrap process-section" id="cara-kerja">
+    <div class="process-parallax-bg" aria-hidden="true">
+        <span class="process-orb process-orb-1" data-parallax-speed="0.06"></span>
+        <span class="process-orb process-orb-2" data-parallax-speed="-0.05"></span>
+    </div>
+    <div class="container container-rf position-relative">
+        <div class="section-heading process-reveal">
             <div>
                 <span class="section-kicker">Cara kerja</span>
                 <h2>Dari laporan hingga barang kembali</h2>
@@ -183,13 +187,18 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
                 ['title' => 'Koordinasikan pengambilan', 'desc' => 'Masuk untuk melihat kontak pelapor dan menyelesaikan serah terima.'],
             ];
             foreach ($steps as $i => $step):
+                $parallaxSpeed = $i === 1 ? '-0.035' : '0.025';
             ?>
-                <div class="col-12 col-md-4">
-                    <article class="process-card">
-                        <span class="process-card-index">0<?= $i + 1 ?></span>
-                        <h3><?= $step['title'] ?></h3>
-                        <p><?= $step['desc'] ?></p>
-                    </article>
+                <div class="col-12 col-md-4 process-reveal" style="--reveal-delay: <?= $i * 110 ?>ms;">
+                    <div class="process-parallax-item" data-parallax-speed="<?= $parallaxSpeed ?>">
+                        <div class="process-float-wrap" style="--float-delay: <?= $i * 0.7 ?>s;">
+                            <article class="process-card">
+                                <span class="process-card-index">0<?= $i + 1 ?></span>
+                                <h3><?= $step['title'] ?></h3>
+                                <p><?= $step['desc'] ?></p>
+                            </article>
+                        </div>
+                    </div>
                 </div>
             <?php endforeach; ?>
         </div>

@@ -474,11 +474,111 @@ textarea.form-control {
     color: var(--rf-muted);
 }
 
+.process-section {
+    position: relative;
+    overflow: hidden;
+}
+
+.process-parallax-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.process-orb {
+    position: absolute;
+    border-radius: 999px;
+    transform: translate3d(0, var(--parallax-y, 0px), 0);
+    will-change: transform;
+}
+
+.process-orb-1 {
+    top: -3.5rem;
+    right: 6%;
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(circle, rgba(193, 138, 69, 0.12) 0%, rgba(193, 138, 69, 0) 70%);
+}
+
+.process-orb-2 {
+    bottom: -4rem;
+    left: 4%;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(23, 59, 77, 0.08) 0%, rgba(23, 59, 77, 0) 72%);
+}
+
+.js-motion-ready .process-reveal {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+    transition:
+        opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+        transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
+}
+
+.js-motion-ready .process-reveal.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+.process-parallax-item {
+    height: 100%;
+    transform: translate3d(0, var(--parallax-y, 0px), 0);
+    will-change: transform;
+}
+
+.process-float-wrap {
+    height: 100%;
+    animation: processFloat 5.2s ease-in-out infinite;
+    animation-delay: var(--float-delay, 0s);
+}
+
+@keyframes processFloat {
+    0%, 100% {
+        transform: translate3d(0, 0, 0);
+    }
+    50% {
+        transform: translate3d(0, -4px, 0);
+    }
+}
+
 .process-card {
+    position: relative;
     height: 100%;
     padding: 1.4rem;
+    border: 1px solid var(--rf-border);
     border-top: 2px solid #d5dfda;
+    border-radius: var(--rf-radius);
     background: #fff;
+    overflow: hidden;
+    transition:
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.35s ease;
+}
+
+.process-card::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--rf-primary), var(--rf-accent));
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.process-card:hover {
+    transform: translate3d(0, -6px, 0);
+    border-color: rgba(23, 59, 77, 0.16);
+    box-shadow: 0 16px 34px rgba(23, 59, 77, 0.08);
+}
+
+.process-card:hover::after {
+    transform: scaleX(1);
 }
 
 .process-card-index {
@@ -488,6 +588,12 @@ textarea.form-control {
     font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 0.82rem;
     font-weight: 600;
+    transition: color 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.process-card:hover .process-card-index {
+    color: var(--rf-primary);
+    transform: translateX(3px);
 }
 
 .process-card h3 {
@@ -495,12 +601,40 @@ textarea.form-control {
     color: var(--rf-primary);
     font-size: 1rem;
     font-weight: 700;
+    transition: color 0.3s ease;
 }
 
 .process-card p {
     margin: 0;
     color: var(--rf-muted);
     font-size: 0.9rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .js-motion-ready .process-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .process-float-wrap {
+        animation: none;
+    }
+
+    .process-parallax-item,
+    .process-orb {
+        transform: none;
+    }
+
+    .process-card,
+    .process-card::after,
+    .process-card-index {
+        transition: none;
+    }
+
+    .process-card:hover {
+        transform: none;
+    }
 }
 
 .contact-panel {
