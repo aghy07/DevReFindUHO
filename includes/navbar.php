@@ -12,8 +12,9 @@ $dbErr      = db_connection_error();
 
 $currentScript = basename($_SERVER['PHP_SELF'] ?? '');
 $isLandingPage = $currentScript === 'index.php';
+$isCatalogPage = in_array($currentScript, ['daftar_barang.php', 'detail_barang.php'], true);
 ?>
-<nav class="navbar navbar-expand-lg navbar-dark bg-rf-primary sticky-top shadow-sm<?= $isLandingPage ? ' landing-nav' : '' ?>">
+<nav class="navbar navbar-expand-lg navbar-dark bg-rf-primary sticky-top shadow-sm<?= $isLandingPage ? ' landing-nav' : '' ?><?= $isCatalogPage ? ' catalog-nav' : '' ?>">
     <div class="container container-rf">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="<?= base_url('index.php') ?>">
             <i class="bi bi-search-heart text-warning fs-5"></i>
@@ -32,7 +33,7 @@ $isLandingPage = $currentScript === 'index.php';
 
                 <!-- Terbuka untuk umum: semua civitas akademika dapat melihat daftar barang -->
                 <li class="nav-item">
-                    <a class="nav-link <?= ($currentScript === 'daftar_barang.php') ? 'active fw-semibold' : '' ?>" href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>">
+                    <a class="nav-link <?= ($currentScript === 'daftar_barang.php') ? 'active fw-semibold' : '' ?>" href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" data-page-transition>
                         <i class="bi bi-grid me-1"></i>Daftar Barang
                     </a>
                 </li>

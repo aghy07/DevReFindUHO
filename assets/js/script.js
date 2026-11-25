@@ -2,7 +2,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Image Skeleton Shimmer Removal
     document.querySelectorAll('.img-shimmer-wrap img').forEach((img) => {
         const wrap = img.closest('.img-shimmer-wrap');
-        const markLoaded = () => wrap && wrap.classList.add('is-loaded');
+        const markLoaded = () => {
+            if (!wrap) return;
+            wrap.classList.add('is-loaded');
+            wrap.classList.remove('skeleton-shimmer');
+        };
         if (img.complete) {
             markLoaded();
         } else {
@@ -17,30 +21,44 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchForm && gridBarang) {
         searchForm.addEventListener('submit', () => {
             const skeletonCard = `
-                <div class="col-12 col-sm-6 col-lg-4">
-                    <div class="card-surface p-3 h-100">
-                        <div class="skeleton-shimmer skeleton-img mb-3"></div>
-                        <div class="skeleton-shimmer skeleton-line short mb-2"></div>
-                        <div class="skeleton-shimmer skeleton-line mb-2"></div>
-                        <div class="skeleton-shimmer skeleton-line short"></div>
-                    </div>
+                <div class="catalog-skeleton-card" aria-hidden="true">
+                    <span class="skeleton-shimmer catalog-skeleton-media"></span>
+                    <span class="skeleton-shimmer catalog-skeleton-line short"></span>
+                    <span class="skeleton-shimmer catalog-skeleton-line long"></span>
+                    <span class="skeleton-shimmer catalog-skeleton-line medium"></span>
+                    <span class="skeleton-shimmer catalog-skeleton-line short"></span>
                 </div>`;
-            gridBarang.innerHTML = skeletonCard.repeat(6);
+            gridBarang.setAttribute('aria-busy', 'true');
+            gridBarang.innerHTML = `${'<p class="visually-hidden" role="status">Memuat daftar barang...</p>'}${skeletonCard.repeat(6)}`;
         });
     }
 
-    // 3. Submit Button Loading Lock (Asynchronous lock to ensure form data submits correctly)
-    document.querySelectorAll('form[data-loading-submit]').forEach((form) => {
+    // 3. Submit Button Loading State
+    document.querySelectorAll('form:not([data-no-loading])').forEach((form) => {
         form.addEventListener('submit', (e) => {
             if (!form.checkValidity()) return;
-            const btn = form.querySelector('button[type="submit"]');
-            if (btn && !btn.disabled) {
-                const label = btn.getAttribute('data-loading-text') || 'Memproses...';
-                setTimeout(() => {
-                    btn.disabled = true;
-                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span> ${label}`;
-                }, 0);
-            }
+            const submitter = e.submitter;
+            const btn = submitter && submitter.matches('button[type="submit"], input[type="submit"]')
+                ? submitter
+                : form.querySelector('button[type="submit"], input[type="submit"]');
+            if (!btn || btn.disabled) return;
+
+            const label = btn.getAttribute('data-loading-text') || 'Memproses...';
+            form.setAttribute('aria-busy', 'true');
+            btn.classList.add('is-loading');
+            btn.setAttribute('aria-busy', 'true');
+            btn.dataset.loadingOriginal = btn instanceof HTMLInputElement ? btn.value : btn.innerHTML;
+
+            setTimeout(() => {
+                if (!btn.isConnected) return;
+                btn.disabled = true;
+                const loadingMarkup = `<span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>${label}`;
+                if (btn instanceof HTMLInputElement) {
+                    btn.value = label;
+                } else {
+                    btn.innerHTML = loadingMarkup;
+                }
+            }, 0);
         });
     });
 
@@ -174,11 +192,88 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 9. Landing Page Motion (Fade-in + Light Parallax)
+    // 9. Page Motion and Navigation
     const processSection = document.querySelector('.process-section');
     const landingHero = document.querySelector('.landing-hero');
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const revealEls = document.querySelectorAll('.landing-reveal, .process-reveal');
+    const revealEls = document.querySelectorAll('.landing-reveal, .process-reveal, .catalog-reveal');
+
+    const pageTransitionOverlay = document.querySelector('.page-transition-overlay');
+    const pageTransitionStatus = document.querySelector('[data-page-transition-status]');
+    let isPageTransitioning = false;
+
+    if (document.querySelector('body > main') && !prefersReducedMotion) {
+        document.documentElement.classList.add('page-transition-in');
+        window.setTimeout(() => {
+            document.documentElement.classList.remove('page-transition-in');
+        }, 520);
+    }
+
+    window.addEventListener('pageshow', () => {
+        document.documentElement.classList.remove('page-transition-out');
+        isPageTransitioning = false;
+        if (pageTransitionStatus) pageTransitionStatus.textContent = '';
+        document.querySelectorAll('form[aria-busy="true"]').forEach((form) => {
+            form.removeAttribute('aria-busy');
+            form.querySelectorAll('.is-loading').forEach((btn) => {
+                if (btn instanceof HTMLInputElement) {
+                    btn.value = btn.dataset.loadingOriginal || btn.value;
+                } else {
+                    btn.innerHTML = btn.dataset.loadingOriginal || btn.innerHTML;
+                }
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
+                btn.removeAttribute('aria-busy');
+                delete btn.dataset.loadingOriginal;
+            });
+        });
+    });
+
+    if (pageTransitionOverlay) {
+        document.addEventListener('click', (event) => {
+            const link = event.target instanceof Element
+                ? event.target.closest('a[href]')
+                : null;
+
+            if (
+                !link
+                || event.defaultPrevented
+                || isPageTransitioning
+                || event.button !== 0
+                || event.metaKey
+                || event.ctrlKey
+                || event.shiftKey
+                || event.altKey
+                || (link.target && link.target !== '_self')
+                || link.hasAttribute('download')
+                || link.hasAttribute('data-no-page-transition')
+                || link.getAttribute('href').trim().startsWith('#')
+            ) {
+                return;
+            }
+
+            const destination = new URL(link.href, window.location.href);
+            const isHashNavigation = destination.pathname === window.location.pathname
+                && destination.search === window.location.search
+                && destination.hash;
+            if (
+                destination.origin !== window.location.origin
+                || destination.href === window.location.href
+                || isHashNavigation
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            isPageTransitioning = true;
+            document.documentElement.classList.remove('page-transition-in');
+            if (pageTransitionStatus) pageTransitionStatus.textContent = 'Memuat halaman';
+            document.documentElement.classList.add('page-transition-out');
+            window.setTimeout(() => {
+                window.location.assign(destination.href);
+            }, prefersReducedMotion ? 0 : 220);
+        });
+    }
 
     if (revealEls.length > 0) {
         if (!prefersReducedMotion) {

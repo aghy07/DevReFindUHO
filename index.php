@@ -36,21 +36,21 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
                             <a href="<?= base_url('pages/mahasiswa/form_laporan.php') ?>" class="btn btn-rf-primary">
                                 Buat laporan <i class="bi bi-arrow-right"></i>
                             </a>
-                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary landing-secondary-action">
+                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary landing-secondary-action" data-page-transition>
                                 Jelajahi laporan
                             </a>
                         <?php elseif ($isLoggedIn && $role === 'admin'): ?>
                             <a href="<?= base_url('pages/admin/dashboard.php') ?>" class="btn btn-rf-primary">
                                 Buka dashboard <i class="bi bi-arrow-right"></i>
                             </a>
-                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary landing-secondary-action">
+                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary landing-secondary-action" data-page-transition>
                                 Jelajahi laporan
                             </a>
                         <?php else: ?>
                             <a href="<?= base_url('pages/auth/register.php') ?>" class="btn btn-rf-primary">
                                 Laporkan barang <i class="bi bi-arrow-right"></i>
                             </a>
-                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary landing-secondary-action">
+                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary landing-secondary-action" data-page-transition>
                                 Jelajahi laporan
                             </a>
                         <?php endif; ?>

@@ -13,6 +13,15 @@ if (!function_exists('escape')) {
 }
 
 $pageTitle = $pageTitle ?? 'ReFindUHO';
+$catalogThemePages = ['daftar_barang.php', 'detail_barang.php'];
+$currentPage = basename($_SERVER['PHP_SELF'] ?? '');
+$bodyClass = 'site-theme';
+if ($currentPage === 'index.php') {
+    $bodyClass .= ' landing-theme';
+}
+if (in_array($currentPage, $catalogThemePages, true)) {
+    $bodyClass .= ' catalog-theme';
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -35,4 +44,8 @@ $pageTitle = $pageTitle ?? 'ReFindUHO';
     <!-- Custom CSS -->
     <link href="<?= base_url('assets/css/style.css') ?>" rel="stylesheet">
 </head>
-<body>
+<body class="<?= escape($bodyClass) ?>">
+<div class="page-transition-overlay" aria-hidden="true">
+    <span class="page-transition-progress"></span>
+</div>
+<span class="visually-hidden" role="status" aria-live="polite" data-page-transition-status></span>

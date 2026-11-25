@@ -49,13 +49,14 @@ require_once __DIR__ . '/../../includes/header.php';
 require_once __DIR__ . '/../../includes/navbar.php';
 ?>
 
-<main class="container container-rf py-4">
-    <div class="mb-3 d-flex align-items-center gap-2">
-        <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-sm btn-outline-secondary">
+<main class="catalog-page item-detail-page">
+    <div class="container container-rf catalog-container">
+    <div class="item-detail-top catalog-reveal">
+        <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn catalog-back-btn" data-page-transition>
             <i class="bi bi-arrow-left"></i> Kembali ke Daftar
         </a>
         <?php if ($isOwner): ?>
-            <a href="<?= base_url('pages/mahasiswa/dashboard.php') ?>" class="btn btn-sm btn-outline-rf-primary">
+            <a href="<?= base_url('pages/mahasiswa/dashboard.php') ?>" class="btn catalog-back-btn">
                 <i class="bi bi-layout-text-sidebar"></i> Laporan Saya
             </a>
         <?php endif; ?>
@@ -63,7 +64,7 @@ require_once __DIR__ . '/../../includes/navbar.php';
 
     <!-- Banner kepemilikan laporan -->
     <?php if ($isOwner): ?>
-        <div class="alert alert-info d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+        <div class="alert item-owner-alert catalog-reveal d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
             <div>
                 <i class="bi bi-person-check-fill me-1"></i>
                 <strong>Ini adalah laporan Anda.</strong> Status saat ini:
@@ -82,68 +83,71 @@ require_once __DIR__ . '/../../includes/navbar.php';
         </div>
     <?php endif; ?>
 
-    <div class="row g-4">
-        <!-- Photo Column -->
-        <div class="col-12 col-lg-5">
-            <div class="card-surface overflow-hidden">
+    <div class="item-detail-layout">
+        <div class="item-gallery catalog-reveal" style="--reveal-delay: 80ms;">
+            <?php
+            $fotoAda = !empty($barang->foto) && file_exists(UPLOAD_DIR . $barang->foto);
+            $fotoSrc = $fotoAda
+                ? base_url('uploads/' . $barang->foto)
+                : base_url('assets/images/no-image.svg');
+            ?>
+            <div class="item-photo-frame">
                 <div class="img-shimmer-wrap skeleton-shimmer">
-                    <?php
-                    $fotoAda = !empty($barang->foto) && file_exists(UPLOAD_DIR . $barang->foto);
-                    $fotoSrc = $fotoAda
-                        ? base_url('uploads/' . $barang->foto)
-                        : base_url('assets/images/no-image.svg');
-                    ?>
                     <img src="<?= escape($fotoSrc) ?>" alt="<?= escape($barang->nama_barang) ?>"
                          onerror="this.src='<?= base_url('assets/images/no-image.svg') ?>'">
                 </div>
+                <span class="item-photo-kind">
+                    <i class="bi <?= $barang->jenis_laporan === 'hilang' ? 'bi-search' : 'bi-hand-index' ?>"></i>
+                    <?= $barang->jenis_laporan === 'hilang' ? 'Barang hilang' : 'Barang temuan' ?>
+                </span>
             </div>
+            <p class="item-photo-caption"><i class="bi bi-shield-check"></i> Foto dari laporan civitas akademika UHO</p>
         </div>
 
-        <!-- Detail Column -->
-        <div class="col-12 col-lg-7">
-            <div class="card-surface p-4">
-                <!-- Badges -->
+        <section class="item-info-panel catalog-reveal" style="--reveal-delay: 150ms;" aria-labelledby="item-title">
+                <div class="item-info-label"><span></span> Detail laporan</div>
                 <div class="d-flex flex-wrap gap-2 mb-3">
                     <?php if ($barang->jenis_laporan === 'hilang'): ?>
-                        <span class="badge-rf badge-jenis-hilang">
-                            <i class="bi bi-exclamation-circle"></i> Barang Hilang
+                        <span class="item-detail-badge item-detail-badge-lost">
+                            <i class="bi bi-search"></i> Barang hilang
                         </span>
                     <?php else: ?>
-                        <span class="badge-rf badge-jenis-temuan">
-                            <i class="bi bi-hand-index"></i> Barang Temuan
+                        <span class="item-detail-badge item-detail-badge-found">
+                            <i class="bi bi-hand-index"></i> Barang temuan
                         </span>
                     <?php endif; ?>
 
-                    <span class="badge-rf <?= badge_status_class($barang->status) ?>">
-                        <i class="bi bi-info-circle"></i> <?= escape($barang->status) ?>
+                    <span class="item-detail-badge item-detail-badge-status">
+                        <i class="bi bi-patch-check"></i> <?= escape($barang->status) ?>
                     </span>
                 </div>
 
-                <h1 class="h4 fw-bold mb-3"><?= escape($barang->nama_barang) ?></h1>
+                <h1 id="item-title"><?= escape($barang->nama_barang) ?></h1>
+                <p class="item-detail-lead">Informasi barang yang dilaporkan oleh civitas akademika Universitas Halu Oleo.</p>
 
-                <table class="table table-borderless detail-meta mb-3">
-                    <tbody>
-                        <tr>
-                            <td class="text-muted" style="width: 160px;"><i class="bi bi-tag me-1"></i>Kategori</td>
-                            <td class="fw-medium"><?= escape($barang->nama_kategori) ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted"><i class="bi bi-geo-alt me-1"></i>Lokasi</td>
-                            <td class="fw-medium"><?= escape($barang->lokasi) ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted"><i class="bi bi-calendar3 me-1"></i>Tanggal</td>
-                            <td class="fw-medium font-mono"><?= escape($barang->tanggal_kejadian) ?></td>
-                        </tr>
-                        <tr>
-                            <td class="text-muted"><i class="bi bi-person me-1"></i>Pelapor</td>
-                            <td class="fw-medium"><?= escape($barang->nama_pelapor) ?></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="item-meta-grid">
+                    <div class="item-meta-entry">
+                        <i class="bi bi-tag"></i>
+                        <span>Kategori<strong><?= escape($barang->nama_kategori) ?></strong></span>
+                    </div>
+                    <div class="item-meta-entry">
+                        <i class="bi bi-geo-alt"></i>
+                        <span>Lokasi<strong><?= escape($barang->lokasi) ?></strong></span>
+                    </div>
+                    <div class="item-meta-entry">
+                        <i class="bi bi-calendar3"></i>
+                        <span>Tanggal<strong><?= escape($barang->tanggal_kejadian) ?></strong></span>
+                    </div>
+                    <div class="item-meta-entry">
+                        <i class="bi bi-person"></i>
+                        <span>Pelapor<strong><?= escape($barang->nama_pelapor) ?></strong></span>
+                    </div>
+                </div>
 
-                <h2 class="h6 fw-bold mb-2">Deskripsi</h2>
-                <p class="mb-4 text-secondary" style="white-space: pre-line;"><?= escape($barang->deskripsi) ?></p>
+                <div class="item-description">
+                    <h2>Deskripsi</h2>
+                    <p><?= escape($barang->deskripsi) ?></p>
+                </div>
 
                 <!-- Alasan Penolakan (khusus pemilik / admin jika ditolak) -->
                 <?php if ($barang->status === 'Ditolak' && !empty($barang->alasan_penolakan)): ?>
@@ -155,28 +159,28 @@ require_once __DIR__ . '/../../includes/navbar.php';
 
                 <!-- Contact Card (BR-08: Kontak hanya boleh dilihat pengguna yang telah login) -->
                 <?php if (is_logged_in()): ?>
-                    <div class="card-surface p-3" style="background-color: var(--rf-primary-soft);">
-                        <h3 class="h6 fw-bold mb-2"><i class="bi bi-telephone me-1 text-rf-primary"></i>Kontak Pelapor</h3>
-                        <p class="mb-2 fw-medium font-mono"><?= escape($barang->kontak) ?></p>
-                        <button type="button" class="btn btn-sm btn-rf-primary"
+                    <div class="item-contact-card">
+                        <h3><i class="bi bi-telephone"></i> Kontak pelapor</h3>
+                        <p class="font-mono"><?= escape($barang->kontak) ?></p>
+                        <button type="button" class="btn catalog-primary-btn"
                                 data-copy-text="<?= escape($barang->kontak) ?>">
                             <i class="bi bi-clipboard"></i> Salin Kontak
                         </button>
                     </div>
                 <?php else: ?>
-                    <div class="card-surface p-3 text-center" style="background-color: var(--rf-primary-soft);">
-                        <i class="bi bi-shield-lock text-rf-primary fs-4 d-block mb-1"></i>
-                        <h3 class="h6 fw-bold mb-1">Informasi Kontak Dilindungi</h3>
-                        <p class="text-muted small mb-3">
+                    <div class="item-contact-card item-contact-private">
+                        <i class="bi bi-shield-lock"></i>
+                        <h3>Kontak pelapor dilindungi</h3>
+                        <p>
                             Sesuai aturan privasi kampus (BR-08), silakan masuk dengan akun Anda untuk melihat kontak pelapor ini.
                         </p>
-                        <a href="<?= base_url('pages/auth/login.php') ?>" class="btn btn-sm btn-rf-primary">
+                        <a href="<?= base_url('pages/auth/login.php') ?>" class="btn catalog-primary-btn">
                             <i class="bi bi-box-arrow-in-right"></i> Masuk untuk Melihat Kontak
                         </a>
                     </div>
                 <?php endif; ?>
-            </div>
-        </div>
+        </section>
+    </div>
     </div>
 </main>
 
