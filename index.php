@@ -80,7 +80,7 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
                             $fotoSrc = $fotoAda ? base_url('uploads/' . $item['foto']) : base_url('assets/images/no-image.svg');
                             ?>
                             <img src="<?= escape($fotoSrc) ?>" alt="<?= escape($item['nama_barang']) ?>"
-                                 onerror="this.src='<?= base_url('assets/images/no-image.svg') ?>'">
+                                onerror="this.src='<?= base_url('assets/images/no-image.svg') ?>'">
                         </div>
                         <div class="p-3 d-flex flex-column flex-grow-1">
                             <?php if ($item['jenis_laporan'] === 'hilang'): ?>
