@@ -21,77 +21,84 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
 ?>
 
 <main>
-    <section class="hero-section">
-        <div class="container container-rf">
+    <section class="hero-section landing-hero">
+        <div class="container container-rf landing-hero-container">
             <div class="hero-layout">
-                <div>
-                    <span class="hero-kicker">Layanan civitas akademika UHO</span>
-                    <h1 class="hero-title">Barang hilang atau ditemukan di kampus?</h1>
+                <div class="landing-hero-copy">
+                    <span class="hero-kicker">Layanan barang hilang &amp; temuan UHO</span>
+                    <h1 class="hero-title">Temukan barang.<br>Kembalikan ke pemiliknya.</h1>
                     <p class="hero-copy">
-                        ReFindUHO membantu mahasiswa melaporkan barang, menelusuri temuan,
-                        dan menghubungkan kembali barang dengan pemiliknya melalui proses
-                        yang terverifikasi.
+                        Satu tempat untuk melaporkan kehilangan, mengumumkan temuan,
+                        dan menelusuri barang terverifikasi di lingkungan kampus.
                     </p>
-                    <div class="hero-actions">
+                    <div class="hero-actions landing-hero-actions">
                         <?php if ($isLoggedIn && $role === 'mahasiswa'): ?>
                             <a href="<?= base_url('pages/mahasiswa/form_laporan.php') ?>" class="btn btn-rf-primary">
-                                <i class="bi bi-plus-lg"></i> Buat laporan
+                                Buat laporan <i class="bi bi-arrow-right"></i>
                             </a>
-                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary">
-                                Telusuri barang <i class="bi bi-arrow-up-right"></i>
+                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary landing-secondary-action">
+                                Jelajahi laporan
                             </a>
                         <?php elseif ($isLoggedIn && $role === 'admin'): ?>
                             <a href="<?= base_url('pages/admin/dashboard.php') ?>" class="btn btn-rf-primary">
-                                <i class="bi bi-speedometer2"></i> Buka dashboard
+                                Buka dashboard <i class="bi bi-arrow-right"></i>
                             </a>
-                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary">
-                                Telusuri barang <i class="bi bi-arrow-up-right"></i>
+                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary landing-secondary-action">
+                                Jelajahi laporan
                             </a>
                         <?php else: ?>
                             <a href="<?= base_url('pages/auth/register.php') ?>" class="btn btn-rf-primary">
-                                <i class="bi bi-plus-lg"></i> Laporkan barang
+                                Laporkan barang <i class="bi bi-arrow-right"></i>
                             </a>
-                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary">
-                                Telusuri barang <i class="bi bi-arrow-up-right"></i>
+                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary landing-secondary-action">
+                                Jelajahi laporan
                             </a>
                         <?php endif; ?>
                     </div>
                     <p class="hero-note">
-                        <i class="bi bi-shield-check"></i>
-                        Kontak pelapor hanya tersedia bagi pengguna yang masuk.
+                        <i class="bi bi-shield-check"></i> Laporan ditinjau admin sebelum tampil ke publik.
                     </p>
                 </div>
 
-                <aside class="hero-panel" aria-label="Informasi proses laporan">
+                <aside class="hero-panel landing-search-card" aria-label="Cari laporan barang">
                     <div class="hero-panel-label">
-                        <span class="hero-panel-mark"><i class="bi bi-search-heart"></i></span>
-                        Alur yang jelas
+                        <span class="hero-panel-mark"><i class="bi bi-search"></i></span>
+                        Pencarian barang
                     </div>
-                    <h2>Setiap laporan ditangani dengan langkah yang terukur.</h2>
-                    <ul class="hero-points">
-                        <li>
-                            <span class="hero-point-index">01</span>
-                            <span>
-                                <span class="hero-point-title">Ceritakan detailnya</span>
-                                <span class="hero-point-copy">Tambahkan ciri barang, lokasi, dan waktu kejadian.</span>
-                            </span>
-                        </li>
-                        <li>
-                            <span class="hero-point-index">02</span>
-                            <span>
-                                <span class="hero-point-title">Tunggu verifikasi</span>
-                                <span class="hero-point-copy">Admin meninjau laporan sebelum ditampilkan ke publik.</span>
-                            </span>
-                        </li>
-                        <li>
-                            <span class="hero-point-index">03</span>
-                            <span>
-                                <span class="hero-point-title">Terhubung dengan pelapor</span>
-                                <span class="hero-point-copy">Koordinasikan pengambilan barang dengan aman.</span>
-                            </span>
-                        </li>
-                    </ul>
+                    <h2>Ada yang sedang dicari?</h2>
+                    <p class="landing-search-intro">Telusuri barang yang telah diverifikasi di kampus.</p>
+                    <form action="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" method="get" class="landing-search-form">
+                        <div>
+                            <label for="landing-keyword">Nama atau ciri barang</label>
+                            <input id="landing-keyword" name="keyword" type="search" placeholder="Contoh: dompet hitam">
+                        </div>
+                        <div>
+                            <label for="landing-kind">Jenis laporan</label>
+                            <select id="landing-kind" name="jenis">
+                                <option value="">Semua laporan</option>
+                                <option value="hilang">Barang hilang</option>
+                                <option value="temuan">Barang temuan</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-rf-primary">
+                            Cari barang <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </form>
                 </aside>
+            </div>
+            <div class="landing-trust-strip" aria-label="Keunggulan ReFindUHO">
+                <div class="landing-trust-item">
+                    <i class="bi bi-patch-check"></i>
+                    <span><strong>Ditinjau admin</strong><small>Laporan diperiksa sebelum dipublikasi</small></span>
+                </div>
+                <div class="landing-trust-item">
+                    <i class="bi bi-mortarboard"></i>
+                    <span><strong>Untuk civitas UHO</strong><small>Terhubung dalam satu kampus</small></span>
+                </div>
+                <div class="landing-trust-item">
+                    <i class="bi bi-person-lock"></i>
+                    <span><strong>Akses kontak terbatas</strong><small>Kontak pelapor hanya untuk pengguna masuk</small></span>
+                </div>
             </div>
         </div>
     </section>

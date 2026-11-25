@@ -11,8 +11,9 @@ $role       = $user['role'] ?? '';
 $dbErr      = db_connection_error();
 
 $currentScript = basename($_SERVER['PHP_SELF'] ?? '');
+$isLandingPage = $currentScript === 'index.php';
 ?>
-<nav class="navbar navbar-expand-lg navbar-dark bg-rf-primary sticky-top shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark bg-rf-primary sticky-top shadow-sm<?= $isLandingPage ? ' landing-nav' : '' ?>">
     <div class="container container-rf">
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="<?= base_url('index.php') ?>">
             <i class="bi bi-search-heart text-warning fs-5"></i>

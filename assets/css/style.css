@@ -986,3 +986,329 @@ textarea.form-control {
         transition-duration: 0.01ms !important;
     }
 }
+
+.navbar.landing-nav {
+    position: absolute;
+    z-index: 20;
+    top: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    min-height: 76px;
+    border: 0;
+    background: linear-gradient(180deg, rgba(7, 24, 31, 0.78), transparent) !important;
+    box-shadow: none !important;
+}
+
+.navbar.landing-nav .navbar-brand,
+.navbar.landing-nav .navbar-nav .nav-link {
+    color: #f4f8f6 !important;
+}
+
+.navbar.landing-nav .navbar-nav .nav-link:hover,
+.navbar.landing-nav .navbar-nav .nav-link.active {
+    color: #9de3d5 !important;
+}
+
+.navbar.landing-nav .navbar-nav .nav-link.active::after {
+    background: #73d6c4;
+}
+
+.navbar.landing-nav .navbar-toggler {
+    color: #fff;
+}
+
+.navbar.landing-nav .navbar-toggler-icon {
+    filter: none;
+}
+
+.hero-section.landing-hero {
+    position: relative;
+    isolation: isolate;
+    min-height: clamp(680px, 92vh, 860px);
+    min-height: clamp(680px, 92svh, 860px);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 7.5rem 0 2rem;
+    border: 0;
+    background:
+        linear-gradient(90deg, rgba(8, 29, 37, 0.92) 0%, rgba(8, 29, 37, 0.62) 42%, rgba(8, 29, 37, 0.2) 100%),
+        linear-gradient(0deg, rgba(8, 29, 37, 0.58), transparent 44%),
+        url("../images/campus-uho.jpg") center 54% / cover no-repeat,
+        #102f38;
+    color: #fff;
+}
+
+.landing-hero::before {
+    display: none;
+}
+
+.landing-hero::after {
+    display: none;
+}
+
+.landing-hero-container {
+    position: relative;
+    z-index: 1;
+}
+
+.landing-hero .hero-layout {
+    grid-template-columns: minmax(0, 1.1fr) minmax(310px, 0.72fr);
+    gap: clamp(2rem, 6vw, 5.5rem);
+}
+
+.landing-hero .hero-kicker {
+    color: #a9d8cf;
+}
+
+.landing-hero .hero-kicker::before {
+    background: #73d6c4;
+}
+
+.landing-hero .hero-title {
+    max-width: 720px;
+    color: #fff;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: clamp(3.1rem, 6vw, 5.35rem);
+    font-weight: 400;
+    letter-spacing: -0.045em;
+    line-height: 0.99;
+}
+
+.landing-hero .hero-copy {
+    max-width: 560px;
+    color: rgba(239, 246, 243, 0.78);
+    font-size: clamp(1rem, 1.4vw, 1.1rem);
+    line-height: 1.75;
+}
+
+.landing-hero-actions .btn {
+    min-height: 48px;
+    padding-inline: 1.25rem;
+}
+
+.landing-hero .btn-rf-primary {
+    border-color: #73d6c4;
+    background: #73d6c4;
+    color: #12363a;
+}
+
+.landing-hero .btn-rf-primary:hover,
+.landing-hero .btn-rf-primary:focus {
+    border-color: #a0ebdc;
+    background: #a0ebdc;
+    color: #12363a;
+}
+
+.landing-hero .landing-secondary-action {
+    border-color: rgba(255, 255, 255, 0.52);
+    color: #fff;
+}
+
+.landing-hero .landing-secondary-action:hover,
+.landing-hero .landing-secondary-action:focus {
+    border-color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.landing-hero .hero-note {
+    color: rgba(239, 246, 243, 0.68);
+}
+
+.landing-hero .hero-note i {
+    color: #91ddc8;
+}
+
+.landing-hero .landing-search-card {
+    padding: clamp(1.4rem, 2.5vw, 2rem);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    background: rgba(9, 29, 36, 0.82);
+    box-shadow: 0 24px 70px rgba(4, 17, 22, 0.28);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+.landing-hero .hero-panel-label {
+    margin-bottom: 1rem;
+    color: #b4d7d0;
+}
+
+.landing-hero .hero-panel-mark {
+    background: rgba(115, 214, 196, 0.15);
+    color: #83dfcf;
+}
+
+.landing-hero .landing-search-card h2 {
+    margin: 0 0 0.35rem;
+    color: #fff;
+    font-size: clamp(1.35rem, 2vw, 1.6rem);
+}
+
+.landing-search-intro {
+    margin: 0 0 1.35rem;
+    color: rgba(239, 246, 243, 0.67);
+    font-size: 0.88rem;
+}
+
+.landing-search-form {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.landing-search-form label {
+    display: block;
+    margin-bottom: 0.4rem;
+    color: rgba(239, 246, 243, 0.77);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.landing-search-form input,
+.landing-search-form select {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.17);
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font: inherit;
+    font-size: 0.88rem;
+}
+
+.landing-search-form input::placeholder {
+    color: rgba(239, 246, 243, 0.48);
+}
+
+.landing-search-form select option {
+    background: #fff;
+    color: var(--rf-text);
+}
+
+.landing-search-form input:focus,
+.landing-search-form select:focus {
+    border-color: #73d6c4;
+    outline: 3px solid rgba(115, 214, 196, 0.2);
+    outline-offset: 1px;
+}
+
+.landing-search-form .btn {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 0.25rem;
+}
+
+.landing-trust-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: clamp(2rem, 5vh, 3.25rem);
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.landing-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-width: 0;
+}
+
+.landing-trust-item > i {
+    color: #8fe1cf;
+    font-size: 1.25rem;
+}
+
+.landing-trust-item strong,
+.landing-trust-item small {
+    display: block;
+}
+
+.landing-trust-item strong {
+    color: #f4f8f6;
+    font-size: 0.86rem;
+    font-weight: 650;
+}
+
+.landing-trust-item small {
+    color: rgba(239, 246, 243, 0.63);
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
+@media (max-width: 991.98px) {
+    .landing-hero .hero-layout {
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 0.82fr);
+        gap: 2rem;
+    }
+
+    .navbar.landing-nav .navbar-collapse {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 12px;
+        background: rgba(8, 29, 37, 0.96);
+    }
+}
+
+@media (max-width: 767.98px) {
+    .hero-section.landing-hero {
+        min-height: 0;
+        padding: 7.25rem 0 1.6rem;
+        background:
+            linear-gradient(90deg, rgba(8, 29, 37, 0.84), rgba(8, 29, 37, 0.4)),
+            linear-gradient(0deg, rgba(8, 29, 37, 0.68), transparent 55%),
+            url("../images/campus-uho.jpg") 62% center / cover no-repeat,
+            #102f38;
+    }
+
+    .landing-hero .hero-layout {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .landing-hero .hero-title {
+        font-size: clamp(2.8rem, 9vw, 4.2rem);
+    }
+
+    .landing-hero .landing-search-card {
+        max-width: 560px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .hero-section.landing-hero {
+        padding-top: 6.75rem;
+    }
+
+    .landing-hero .hero-title {
+        font-size: clamp(2.5rem, 12vw, 3.5rem);
+    }
+
+    .landing-hero .hero-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .landing-hero .hero-actions .btn {
+        width: 100%;
+    }
+
+    .landing-hero .landing-search-card {
+        padding: 1.25rem;
+    }
+
+    .landing-trust-strip {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .landing-hero .hero-title {
+        font-size: 2.4rem;
+    }
+}
