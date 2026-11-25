@@ -97,7 +97,7 @@ require_once __DIR__ . '/../../includes/navbar.php';
 
                 <h1 class="h4 fw-bold mb-3"><?= escape($barang->nama_barang) ?></h1>
 
-                <table class="table table-borderless mb-3">
+                <table class="table table-borderless detail-meta mb-3">
                     <tbody>
                         <tr>
                             <td class="text-muted" style="width: 170px;"><i class="bi bi-tag me-1"></i>Kategori</td>

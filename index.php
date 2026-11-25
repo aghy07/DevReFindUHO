@@ -20,60 +20,100 @@ $laporanController = new LaporanController($pdo);
 $laporanTerbaru = $laporanController->laporanTerbaru(6);
 ?>
 
-<!-- Hero Section -->
-<section class="hero-section py-5">
-    <div class="container container-rf py-4 text-center">
-        <span class="badge bg-warning text-dark font-mono px-3 py-2 rounded-pill fw-semibold mb-3">
-            <i class="bi bi-mortarboard-fill me-1"></i> Universitas Halu Oleo
-        </span>
-        <h1 class="display-6 fw-bold mb-3">Kehilangan atau Menemukan Barang di Kampus?</h1>
-        <p class="lead mb-4 mx-auto" style="max-width: 640px; opacity: 0.95;">
-            ReFindUHO membantu seluruh civitas akademika Universitas Halu Oleo melaporkan, menelusuri, dan mengembalikan barang hilang maupun temuan di lingkungan kampus secara aman dan terverifikasi.
-        </p>
-        <div class="d-flex flex-wrap justify-content-center gap-2">
-            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-light text-rf-primary fw-semibold px-4">
-                <i class="bi bi-grid"></i> Lihat Daftar Barang
-            </a>
-            <?php if ($isLoggedIn && $role === 'mahasiswa'): ?>
-                <a href="<?= base_url('pages/mahasiswa/form_laporan.php') ?>" class="btn btn-warning text-dark fw-semibold px-4">
-                    <i class="bi bi-plus-circle"></i> Buat Laporan Baru
-                </a>
-                <a href="<?= base_url('pages/mahasiswa/dashboard.php') ?>" class="btn btn-outline-light px-4">
-                    <i class="bi bi-layout-text-sidebar"></i> Laporan Saya
-                </a>
-            <?php elseif ($isLoggedIn && $role === 'admin'): ?>
-                <a href="<?= base_url('pages/admin/dashboard.php') ?>" class="btn btn-warning text-dark fw-semibold px-4">
-                    <i class="bi bi-speedometer2"></i> Dashboard Admin
-                </a>
-            <?php else: ?>
-                <a href="<?= base_url('pages/auth/register.php') ?>" class="btn btn-warning text-dark fw-semibold px-4">
-                    <i class="bi bi-person-plus"></i> Daftar Akun Mahasiswa
-                </a>
-                <a href="<?= base_url('pages/auth/login.php') ?>" class="btn btn-outline-light px-4">
-                    <i class="bi bi-box-arrow-in-right"></i> Masuk
-                </a>
-            <?php endif; ?>
+<main>
+    <section class="hero-section">
+        <div class="container container-rf">
+            <div class="hero-layout">
+                <div>
+                    <span class="hero-kicker">Layanan civitas akademika UHO</span>
+                    <h1 class="hero-title">Barang hilang atau ditemukan di kampus?</h1>
+                    <p class="hero-copy">
+                        ReFindUHO membantu mahasiswa melaporkan barang, menelusuri temuan,
+                        dan menghubungkan kembali barang dengan pemiliknya melalui proses
+                        yang terverifikasi.
+                    </p>
+                    <div class="hero-actions">
+                        <?php if ($isLoggedIn && $role === 'mahasiswa'): ?>
+                            <a href="<?= base_url('pages/mahasiswa/form_laporan.php') ?>" class="btn btn-rf-primary">
+                                <i class="bi bi-plus-lg"></i> Buat laporan
+                            </a>
+                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary">
+                                Telusuri barang <i class="bi bi-arrow-up-right"></i>
+                            </a>
+                        <?php elseif ($isLoggedIn && $role === 'admin'): ?>
+                            <a href="<?= base_url('pages/admin/dashboard.php') ?>" class="btn btn-rf-primary">
+                                <i class="bi bi-speedometer2"></i> Buka dashboard
+                            </a>
+                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary">
+                                Telusuri barang <i class="bi bi-arrow-up-right"></i>
+                            </a>
+                        <?php else: ?>
+                            <a href="<?= base_url('pages/auth/register.php') ?>" class="btn btn-rf-primary">
+                                <i class="bi bi-plus-lg"></i> Laporkan barang
+                            </a>
+                            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary">
+                                Telusuri barang <i class="bi bi-arrow-up-right"></i>
+                            </a>
+                        <?php endif; ?>
+                    </div>
+                    <p class="hero-note">
+                        <i class="bi bi-shield-check"></i>
+                        Kontak pelapor hanya tersedia bagi pengguna yang masuk.
+                    </p>
+                </div>
+
+                <aside class="hero-panel" aria-label="Informasi proses laporan">
+                    <div class="hero-panel-label">
+                        <span class="hero-panel-mark"><i class="bi bi-search-heart"></i></span>
+                        Alur yang jelas
+                    </div>
+                    <h2>Setiap laporan ditangani dengan langkah yang terukur.</h2>
+                    <ul class="hero-points">
+                        <li>
+                            <span class="hero-point-index">01</span>
+                            <span>
+                                <span class="hero-point-title">Ceritakan detailnya</span>
+                                <span class="hero-point-copy">Tambahkan ciri barang, lokasi, dan waktu kejadian.</span>
+                            </span>
+                        </li>
+                        <li>
+                            <span class="hero-point-index">02</span>
+                            <span>
+                                <span class="hero-point-title">Tunggu verifikasi</span>
+                                <span class="hero-point-copy">Admin meninjau laporan sebelum ditampilkan ke publik.</span>
+                            </span>
+                        </li>
+                        <li>
+                            <span class="hero-point-index">03</span>
+                            <span>
+                                <span class="hero-point-title">Terhubung dengan pelapor</span>
+                                <span class="hero-point-copy">Koordinasikan pengambilan barang dengan aman.</span>
+                            </span>
+                        </li>
+                    </ul>
+                </aside>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 
 <!-- Latest Approved Items Preview (Jika ada) -->
 <?php if (!empty($laporanTerbaru)): ?>
-<section class="py-5 bg-white border-bottom">
+<section class="section-wrap bg-white border-bottom">
     <div class="container container-rf">
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div class="section-heading">
             <div>
-                <h2 class="h5 fw-bold mb-1">Barang Terbaru yang Dilaporkan</h2>
-                <p class="text-muted small mb-0">Laporan barang hilang dan temuan terbaru yang telah diverifikasi admin</p>
+                <span class="section-kicker">Pembaruan kampus</span>
+                <h2>Barang yang baru diverifikasi</h2>
+                <p>Laporan terbaru yang siap ditelusuri oleh civitas akademika.</p>
             </div>
-            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-sm btn-outline-rf-primary">
-                Lihat Semua Barang <i class="bi bi-arrow-right"></i>
+            <a href="<?= base_url('pages/mahasiswa/daftar_barang.php') ?>" class="btn btn-outline-rf-primary">
+                Lihat semua <i class="bi bi-arrow-up-right"></i>
             </a>
         </div>
         <div class="row g-3">
             <?php foreach ($laporanTerbaru as $item): ?>
                 <div class="col-12 col-sm-6 col-lg-4">
-                    <div class="card-interactive h-100 d-flex flex-column">
+                    <article class="card-interactive h-100 d-flex flex-column">
                         <div class="img-shimmer-wrap skeleton-shimmer" style="border-radius: 8px 8px 0 0;">
                             <?php
                             $fotoAda = !empty($item['foto']) && file_exists(UPLOAD_DIR . $item['foto']);
@@ -82,7 +122,7 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
                             <img src="<?= escape($fotoSrc) ?>" alt="<?= escape($item['nama_barang']) ?>"
                                 onerror="this.src='<?= base_url('assets/images/no-image.svg') ?>'">
                         </div>
-                        <div class="p-3 d-flex flex-column flex-grow-1">
+                        <div class="p-3 p-lg-4 d-flex flex-column flex-grow-1">
                             <?php if ($item['jenis_laporan'] === 'hilang'): ?>
                                 <span class="badge-rf badge-jenis-hilang mb-2 align-self-start">
                                     <i class="bi bi-exclamation-circle"></i> Barang Hilang
@@ -109,7 +149,7 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
                                    class="btn btn-sm btn-outline-rf-primary w-100">
                                     <i class="bi bi-eye"></i> Lihat Detail
                                 </a>
-                            </div>
+                            </article>
                         </div>
                     </div>
                 </div>
@@ -119,50 +159,50 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
 </section>
 <?php endif; ?>
 
-<!-- 3-Step How It Works -->
-<section class="py-5">
+<section class="section-wrap">
     <div class="container container-rf">
-        <h2 class="h5 fw-bold text-center mb-4">Cara Kerja ReFindUHO</h2>
-        <div class="row g-3 justify-content-center">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker">Cara kerja</span>
+                <h2>Dari laporan hingga barang kembali</h2>
+                <p>Alur sederhana yang menjaga informasi tetap jelas bagi pelapor dan pencari.</p>
+            </div>
+        </div>
+        <div class="row g-3">
             <?php
             $steps = [
-                ['icon' => 'bi-pencil-square', 'title' => 'Lapor', 'desc' => 'Mahasiswa membuat laporan barang hilang atau temuan dengan mengisi formulir lengkap beserta foto.'],
-                ['icon' => 'bi-shield-check', 'title' => 'Verifikasi Admin', 'desc' => 'Admin kampus memeriksa dan memverifikasi laporan sebelum ditampilkan di daftar barang publik.'],
-                ['icon' => 'bi-telephone-outbound', 'title' => 'Hubungi & Selesaikan', 'desc' => 'Pengguna yang telah masuk dapat melihat kontak pelapor untuk berkoordinasi dan menyelesaikan proses serah terima.'],
+                ['title' => 'Ajukan laporan', 'desc' => 'Isi informasi barang, waktu, lokasi, dan ciri yang membantu proses pencarian.'],
+                ['title' => 'Admin meninjau', 'desc' => 'Laporan diperiksa sebelum dipublikasikan agar informasi tetap terjaga.'],
+                ['title' => 'Koordinasikan pengambilan', 'desc' => 'Masuk untuk melihat kontak pelapor dan menyelesaikan serah terima.'],
             ];
             foreach ($steps as $i => $step):
             ?>
                 <div class="col-12 col-md-4">
-                    <div class="card-interactive p-4 h-100 text-center">
-                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
-                             style="width: 52px; height: 52px; background-color: var(--rf-primary-soft);">
-                            <i class="bi <?= $step['icon'] ?>" style="font-size: 1.35rem; color: var(--rf-primary);"></i>
-                        </div>
-                        <div class="d-flex align-items-center justify-content-center gap-2 mb-2">
-                            <span class="fw-bold font-mono small" style="color: var(--rf-accent);">0<?= $i + 1 ?></span>
-                            <h3 class="h6 fw-bold mb-0"><?= $step['title'] ?></h3>
-                        </div>
-                        <p class="text-muted small mb-0"><?= $step['desc'] ?></p>
-                    </div>
+                    <article class="process-card">
+                        <span class="process-card-index">0<?= $i + 1 ?></span>
+                        <h3><?= $step['title'] ?></h3>
+                        <p><?= $step['desc'] ?></p>
+                    </article>
                 </div>
             <?php endforeach; ?>
         </div>
     </div>
 </section>
 
-<!-- Contact Card -->
 <section class="pb-5">
     <div class="container container-rf">
-        <div class="card-surface p-4 text-center mx-auto" style="max-width: 540px;">
-            <h2 class="h6 fw-bold mb-2"><i class="bi bi-headset me-1 text-rf-primary"></i>Layanan Administrasi Kampus</h2>
-            <p class="text-muted small mb-2">
-                Hubungi administrator kampus jika memerlukan bantuan khusus terkait barang hilang atau kendala teknis.
-            </p>
-            <p class="fw-medium mb-0 font-mono small">
-                <i class="bi bi-envelope me-1 text-rf-primary"></i>admin@uho.ac.id
-            </p>
+        <div class="contact-panel">
+            <div>
+                <span class="section-kicker">Butuh bantuan?</span>
+                <h2 class="mt-2">Layanan administrasi kampus</h2>
+                <p>Hubungi administrator jika mengalami kendala saat menggunakan ReFindUHO.</p>
+            </div>
+            <a href="mailto:admin@uho.ac.id">
+                <i class="bi bi-envelope me-2"></i>admin@uho.ac.id
+            </a>
         </div>
     </div>
 </section>
+</main>
 
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
