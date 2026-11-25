@@ -174,12 +174,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // 9. Landing Page "Cara Kerja" Motion (Fade-in + Light Parallax)
+    // 9. Landing Page Motion (Fade-in + Light Parallax)
     const processSection = document.querySelector('.process-section');
-    if (processSection) {
-        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const revealEls = processSection.querySelectorAll('.process-reveal');
+    const landingHero = document.querySelector('.landing-hero');
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const revealEls = document.querySelectorAll('.landing-reveal, .process-reveal');
 
+    if (revealEls.length > 0) {
         if (!prefersReducedMotion) {
             document.documentElement.classList.add('js-motion-ready');
         }
@@ -200,9 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
             );
             revealEls.forEach((el) => revealObserver.observe(el));
         }
+    }
 
+    if (processSection && !prefersReducedMotion) {
         const parallaxEls = processSection.querySelectorAll('[data-parallax-speed]');
-        if (!prefersReducedMotion && parallaxEls.length > 0) {
+        if (parallaxEls.length > 0) {
             let rafId = null;
 
             const updateParallax = () => {
@@ -233,5 +236,26 @@ document.addEventListener('DOMContentLoaded', () => {
             window.addEventListener('scroll', onScrollOrResize, { passive: true });
             window.addEventListener('resize', onScrollOrResize, { passive: true });
         }
+    }
+
+    if (landingHero && !prefersReducedMotion && !window.matchMedia('(pointer: coarse)').matches) {
+        let heroRafId = null;
+
+        const updateHeroParallax = () => {
+            heroRafId = null;
+            const heroTop = landingHero.getBoundingClientRect().top;
+            const offset = Math.max(-12, Math.min(12, heroTop * -0.025));
+            landingHero.style.setProperty('--hero-parallax-y', `${offset.toFixed(2)}px`);
+        };
+
+        const scheduleHeroParallax = () => {
+            if (heroRafId === null) {
+                heroRafId = window.requestAnimationFrame(updateHeroParallax);
+            }
+        };
+
+        updateHeroParallax();
+        window.addEventListener('scroll', scheduleHeroParallax, { passive: true });
+        window.addEventListener('resize', scheduleHeroParallax, { passive: true });
     }
 });

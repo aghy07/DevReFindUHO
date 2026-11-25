@@ -111,12 +111,16 @@ textarea:focus-visible {
     color: #536165;
     font-size: 0.9rem;
     font-weight: 500;
-    transition: color 0.18s ease;
+    transition: color 0.24s ease, transform 0.24s ease;
 }
 
 .navbar .navbar-nav .nav-link:hover,
 .navbar .navbar-nav .nav-link.active {
     color: var(--rf-primary) !important;
+}
+
+.navbar .navbar-nav .nav-link:hover {
+    transform: translateY(-1px);
 }
 
 .navbar .navbar-nav .nav-link.active::after {
@@ -154,8 +158,11 @@ textarea:focus-visible {
     gap: 0.45rem;
     border-radius: 7px;
     font-weight: 600;
-    transition: color 0.16s ease, background-color 0.16s ease,
-        border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+    transition: color 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+        background-color 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+        border-color 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .btn:hover:not(:disabled) {
@@ -246,7 +253,10 @@ textarea.form-control {
 }
 
 .card-interactive {
-    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    transition:
+        border-color 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .card-interactive:hover {
@@ -1171,6 +1181,10 @@ textarea.form-control {
         linear-gradient(0deg, rgba(8, 29, 37, 0.58), transparent 44%),
         url("../images/campus-uho.jpg") center 54% / cover no-repeat,
         #102f38;
+    background-position:
+        0 0,
+        0 0,
+        center calc(54% + var(--hero-parallax-y, 0px));
     color: #fff;
 }
 
@@ -1263,6 +1277,12 @@ textarea.form-control {
     box-shadow: 0 24px 70px rgba(4, 17, 22, 0.28);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.landing-hero .landing-search-card:hover {
+    border-color: rgba(144, 225, 207, 0.38);
+    box-shadow: 0 28px 76px rgba(4, 17, 22, 0.34);
 }
 
 .landing-hero .hero-panel-label {
@@ -1273,6 +1293,7 @@ textarea.form-control {
 .landing-hero .hero-panel-mark {
     background: rgba(115, 214, 196, 0.15);
     color: #83dfcf;
+    animation: landingFloat 6s ease-in-out infinite;
 }
 
 .landing-hero .landing-search-card h2 {
@@ -1392,11 +1413,22 @@ textarea.form-control {
     .hero-section.landing-hero {
         min-height: 0;
         padding: 7.25rem 0 1.6rem;
+    }
+
+    .landing-hero::before {
+        display: none;
+    }
+
+    .hero-section.landing-hero {
         background:
             linear-gradient(90deg, rgba(8, 29, 37, 0.84), rgba(8, 29, 37, 0.4)),
             linear-gradient(0deg, rgba(8, 29, 37, 0.68), transparent 55%),
-            url("../images/campus-uho.jpg") 62% center / cover no-repeat,
+            url("../images/campus-uho.jpg") 62% 50% / cover no-repeat,
             #102f38;
+        background-position:
+            0 0,
+            0 0,
+            62% calc(50% + var(--hero-parallax-y, 0px));
     }
 
     .landing-hero .hero-layout {
@@ -1444,5 +1476,69 @@ textarea.form-control {
 @media (max-width: 380px) {
     .landing-hero .hero-title {
         font-size: 2.4rem;
+    }
+}
+
+@keyframes landingFloat {
+    0%, 100% {
+        transform: translate3d(0, 0, 0);
+    }
+    50% {
+        transform: translate3d(0, -3px, 0);
+    }
+}
+
+.js-motion-ready .landing-reveal {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    transition:
+        opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+        transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms);
+}
+
+.js-motion-ready .landing-reveal.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+}
+
+.js-motion-ready .landing-hero .landing-search-card {
+    transition:
+        opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+        transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) var(--reveal-delay, 0ms),
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.landing-trust-item > i {
+    transition: color 0.25s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.landing-trust-item:hover > i {
+    color: #b6f1e4;
+    transform: translateY(-2px);
+}
+
+.landing-search-form input,
+.landing-search-form select {
+    transition: border-color 0.22s ease, background-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .js-motion-ready .landing-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .landing-hero .hero-panel-mark {
+        animation: none;
+    }
+
+    .hero-section.landing-hero {
+        --hero-parallax-y: 0px;
+    }
+
+    .landing-trust-item > i {
+        transition: none;
     }
 }

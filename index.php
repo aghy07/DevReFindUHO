@@ -24,7 +24,7 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
     <section class="hero-section landing-hero">
         <div class="container container-rf landing-hero-container">
             <div class="hero-layout">
-                <div class="landing-hero-copy">
+                <div class="landing-hero-copy landing-reveal">
                     <span class="hero-kicker">Layanan barang hilang &amp; temuan UHO</span>
                     <h1 class="hero-title">Temukan barang.<br>Kembalikan ke pemiliknya.</h1>
                     <p class="hero-copy">
@@ -60,7 +60,7 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
                     </p>
                 </div>
 
-                <aside class="hero-panel landing-search-card" aria-label="Cari laporan barang">
+                <aside class="hero-panel landing-search-card landing-reveal" aria-label="Cari laporan barang" style="--reveal-delay: 120ms;">
                     <div class="hero-panel-label">
                         <span class="hero-panel-mark"><i class="bi bi-search"></i></span>
                         Pencarian barang
@@ -87,15 +87,15 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
                 </aside>
             </div>
             <div class="landing-trust-strip" aria-label="Keunggulan ReFindUHO">
-                <div class="landing-trust-item">
+                <div class="landing-trust-item landing-reveal" style="--reveal-delay: 180ms;">
                     <i class="bi bi-patch-check"></i>
                     <span><strong>Ditinjau admin</strong><small>Laporan diperiksa sebelum dipublikasi</small></span>
                 </div>
-                <div class="landing-trust-item">
+                <div class="landing-trust-item landing-reveal" style="--reveal-delay: 260ms;">
                     <i class="bi bi-mortarboard"></i>
                     <span><strong>Untuk civitas UHO</strong><small>Terhubung dalam satu kampus</small></span>
                 </div>
-                <div class="landing-trust-item">
+                <div class="landing-trust-item landing-reveal" style="--reveal-delay: 340ms;">
                     <i class="bi bi-person-lock"></i>
                     <span><strong>Akses kontak terbatas</strong><small>Kontak pelapor hanya untuk pengguna masuk</small></span>
                 </div>
@@ -107,7 +107,7 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
 <?php if (!empty($laporanTerbaru)): ?>
 <section class="section-wrap bg-white border-bottom">
     <div class="container container-rf">
-        <div class="section-heading">
+        <div class="section-heading landing-reveal">
             <div>
                 <span class="section-kicker">Pembaruan kampus</span>
                 <h2>Barang yang baru diverifikasi</h2>
@@ -118,8 +118,8 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
             </a>
         </div>
         <div class="row g-3">
-            <?php foreach ($laporanTerbaru as $item): ?>
-                <div class="col-12 col-sm-6 col-lg-4">
+            <?php foreach ($laporanTerbaru as $index => $item): ?>
+                <div class="col-12 col-sm-6 col-lg-4 landing-reveal" style="--reveal-delay: <?= $index * 80 ?>ms;">
                     <article class="card-interactive h-100 d-flex flex-column">
                         <div class="img-shimmer-wrap skeleton-shimmer" style="border-radius: 8px 8px 0 0;">
                             <?php
@@ -205,7 +205,7 @@ $laporanTerbaru = $laporanController->laporanTerbaru(6);
     </div>
 </section>
 
-<section class="pb-5">
+<section class="pb-5 landing-reveal">
     <div class="container container-rf">
         <div class="contact-panel">
             <div>
